@@ -1,0 +1,8 @@
+
+# This helps determine if this is the "first boot".
+# So if change things and want a new first boot, update this.
+instance-id: "home-2019-raspi4/2021-11-06T13:29:32"
+
+# Local Variables:
+# mode: yaml
+# End:
