@@ -45,13 +45,8 @@ client {
   }
 
   # Used by Plex.
-  host_volume "files-media-tv" {
-    path      = "/mnt/nfs/media/tv"
-    read_only = false
-  }
-
-  host_volume "files-media-movies" {
-    path      = "/mnt/nfs/media/movies"
+  host_volume "files-media" {
+    path      = "/mnt/nfs/media"
     read_only = false
   }
 

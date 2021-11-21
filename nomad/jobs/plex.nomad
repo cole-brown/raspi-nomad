@@ -58,15 +58,9 @@ job "plex" {
     }
 
     # NFS mount.
-    volume "files-media-movies" {
+    volume "files-media" {
       type      = "host"
-      source    = "files-media-movies"
-      read_only = false
-    }
-
-    volume "files-media-tv" {
-      type      = "host"
-      source    = "files-media-tv"
+      source    = "files-media"
       read_only = false
     }
 
@@ -101,14 +95,8 @@ job "plex" {
       }
 
       volume_mount {
-        volume      = "files-media-movies"
-        destination = "/movies"
-        read_only   = false
-      }
-
-      volume_mount {
-        volume      = "files-media-tv"
-        destination = "/tv"
+        volume      = "files-media"
+        destination = "/media"
         read_only   = false
       }
 
