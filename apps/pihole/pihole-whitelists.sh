@@ -97,6 +97,49 @@ pihole_whitelist() {
     { set +x; } >/dev/null 2>&1
 }
 
+pihole_regex_whitelist() {
+    if $verbose; then
+        set -x
+    fi
+
+    # Force exit of script if a whitelist command goes wrong.
+    pihole --white-regex $@ || exit 1
+
+    { set +x; } >/dev/null 2>&1
+}
+
+
+# ------------------------------------------------------------------------------
+# Apple
+# ------------------------------------------------------------------------------
+
+whitelist_apple() {
+    # ------------------------------
+    # "Captive-Portal" / Internet Connectivity tests
+    # ------------------------------
+    # In ~whitelist_phones~
+
+    # ------------------------------
+    # Apple ID
+    # ------------------------------
+    pihole_whitelist appleid.apple.com
+
+    # ------------------------------
+    # iOS
+    # ------------------------------
+
+    # iOS Weather app
+    pihole_whitelist gsp-ssl.ls.apple.com gsp-ssl.ls-apple.com.akadns.net
+
+    # ------------------------------
+    # Apps
+    # ------------------------------
+
+    # Apple Music
+    pihole_whitelist itunes.apple.com
+    pihole_whitelist s.mzstatic.com
+}
+
 
 #-------------------------------------------------------------------------------
 # Phones
@@ -111,13 +154,6 @@ whitelist_phones() {
 
     # Google Play
     pihole_whitelist android.clients.google.com
-
-    # ------------------------------
-    # iOS
-    # ------------------------------
-
-    # Gmail (iOS app won't connect without this?)
-    pihole_whitelist googleapis.l.google.com
 
     # ------------------------------
     # "Captive-Portal" / Internet Connectivity tests
@@ -140,15 +176,35 @@ whitelist_phones() {
 whitelist_os () {
     print_section "Whitelist: OS"
 
+    # Microsoft BitLocker
+    pihole_whitelist g.live.com
+
     # Android OS Updates?
     pihole_whitelist appspot-preview.l.google.com
 
     # Windows 10 updates
     pihole_whitelist sls.update.microsoft.com.akadns.net fe3.delivery.dsp.mp.microsoft.com.nsatc.net tlu.dl.delivery.mp.microsoft.com
+
+    # Microsoft Edge Updates
+    pihole_whitelist msedge.api.cdp.microsoft.com
+
+    # NVIDIA GeForce Experience
+    pihole_whitelist gfwsl.geforce.com
 }
 
 whitelist_apps() {
     print_section "Whitelist: Apps"
+
+    # Android TV
+    pihole_whitelist redirector.gvt1.com
+
+    # Gmail (iOS app won't connect without this?)
+    pihole_whitelist googleapis.l.google.com
+
+    # YouTube Apps
+    pihole_whitelist www.googleapis.com
+    pihole_whitelist youtubei.googleapis.com
+    pihole_whitelist oauthaccountmanager.googleapis.com
 
     # Microsoft Store
     pihole_whitelist dl.delivery.mp.microsoft.com geo-prod.do.dsp.mp.microsoft.com displaycatalog.mp.microsoft.com
@@ -159,8 +215,11 @@ whitelist_apps() {
     # Microsoft Office
     pihole_whitelist officeclient.microsoft.com
 
-    # Google Chrome / Ubuntu
+    # Google Chrome (on Ubuntu?)
     pihole_whitelist dl.google.com
+
+    # Google Keep (notes app)
+    pihole_whitelist reminders-pa.googleapis.com firestore.googleapis.com
 
     # Spotify
     pihole_whitelist spclient.wg.spotify.com apresolve.spotify.com
@@ -177,12 +236,23 @@ whitelist_apps() {
     pihole_whitelist themoviedb.com # metadata for movies
     pihole_whitelist chtbl.com # iHeart radio/Plex Podcast
 
+    # Sonarr (Torrent-type thing)
+    pihole_whitelist services.sonarr.tv skyhook.sonarr.tv download.sonarr.tv apt.sonarr.tv forums.sonarr.tv
+
     # Dropbox
     pihole_whitelist dl.dropboxusercontent.com ns1.dropbox.com ns2.dropbox.com
 
     # Firefox Tracking Protection
     # May or may not be blocked due to over-eager "tracking" regexes.
     pihole_whitelist tracking-protection.cdn.mozilla.net
+
+    # # WhatsApp
+    # pihole_whitelist wa.me www.wa.me
+    # pihole_regex_whitelist '^whatsapp-cdn-shv-[0-9]{2}-[a-z]{3}[0-9]\.fbcdn\.net$'
+    # pihole_regex_whitelist '^((www|(w[0-9]\.)?web|media((-[a-z]{3}|\.[a-z]{4})[0-9]{1,2}-[0-9](\.|-)(cdn|fna))?)\.)?whatsapp\.(com|net)$'
+
+    # Signal
+    pihole_whitelist ud-chat.signal.org chat.signal.org storage.signal.org signal.org www.signal.org updates2.signal.org textsecure-service-whispersystems.org giphy-proxy-production.whispersystems.org cdn.signal.org whispersystems-textsecure-attachments.s3-accelerate.amazonaws.com d83eunklitikj.cloudfront.net souqcdn.com cms.souqcdn.com api.directory.signal.org contentproxy.signal.org turn1.whispersystems.org
 }
 
 
@@ -203,6 +273,9 @@ whitelist_websites() {
     # Bing Maps
     pihole_whitelist dev.virtualearth.net ecn.dev.virtualearth.net t0.ssl.ak.dynamic.tiles.virtualearth.net t0.ssl.ak.tiles.virtualearth.net
 
+    # Microsoft Web Pages
+    pihole_whitelist outlook.office365.com products.office.com c.s-microsoft.com i.s-microsoft.com login.live.com login.microsoftonline.com
+
     # YouTube History
     pihole_whitelist s.youtube.com
     pihole_whitelist video-stats.l.google.com
@@ -215,6 +288,16 @@ whitelist_websites() {
 
     # Home Depot "Secure Checkout"
     pihole_whitelist nexus.ensighten.com
+
+    # Reddit
+    pihole_whitelist styles.redditmedia.com www.redditstatic.com reddit.map.fastly.net www.redditmedia.com reddit-uploaded-media.s3-accelerate.amazonaws.com
+    pihole_regex_whitelist '[a-z]\.thumbs\.redditmedia\.com'
+    pihole_regex_whitelist '(\.|^)redd\.it$'
+    pihole_regex_whitelist '(\.|^)reddit\.com$'
+
+    # Twitter
+    # pihole_whitelist twitter.com upload.twitter.com api.twitter.com mobile.twitter.com
+    # pihole_regex_whitelist '(\.|^)twimg\.com$'
 }
 
 
@@ -268,7 +351,7 @@ whitelist_xbox() {
 whitelist_pcmr() {
     print_section "Whitelist: PC Master Race"
 
-    # Epic Games
+    # Epic Games (required to log in to Epic Launcher, required to make purchases on their website?)
     pihole_whitelist tracking.epicgames.com
 
     # Origin (save game sync)
@@ -296,6 +379,7 @@ whitelists() {
     print_title "Whitelist Common Functionality"
 
     # Any `pihole_whitelist' func in any of these will `exit 1` if it fails.
+    whitelist_apple
     whitelist_phones
     whitelist_os
     whitelist_apps
