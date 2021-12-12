@@ -30,10 +30,12 @@ job "pihole" {
     }
 
     network {
-      # mbits = 100
-
       port "dns" {
         static = "53"
+      }
+
+      port "dhcp" {
+        static = "67"
       }
 
       port "http" {
@@ -89,8 +91,9 @@ job "pihole" {
 
         ports = [
           "dns",
+          "dhcp",
           "http",
-          "https"
+          "https",
         ]
 
         #------------------------------
@@ -108,6 +111,9 @@ job "pihole" {
         cap_add = [
           "NET_ADMIN",
         ]
+
+        # Use host's IP, ports, etc for networking.
+        network_mode = "host"
 
         # These are Docker Volumes; stored in "/var/lib/docker/volumes/<source>/_data".
         # Do not want that...
