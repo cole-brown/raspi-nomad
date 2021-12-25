@@ -30,20 +30,22 @@ job "pihole" {
     }
 
     network {
+      # mode = "cni/nomad-cni-macvlan"
+
       port "dns" {
-        static = "53"
+        to = "53"
       }
 
       port "dhcp" {
-        static = "67"
+        to = "67"
       }
 
       port "http" {
-        static = "80"
+        to = "80"
       }
 
       port "https" {
-        static = "443"
+        to = "443"
       }
     }
 
@@ -115,6 +117,26 @@ job "pihole" {
           "NET_ADMIN",
         ]
 
+        # Use Docker macvlan 192.168.254.2/32:
+        network_mode = "pihole_vnet"
+        # Nomad can't manage a macvlan network...
+        # sudo docker network create \
+        #     --driver macvlan \
+        #     --subnet 192.168.254.0/24  \
+        #     --ip-range 192.168.254.2/32 \
+        #     --gateway 192.168.254.254 \
+        #     --opt parent=eth0 \
+        #     pihole_vnet
+
+        # Try to use the macvlan network named "nomad_vnet".
+        # network_mode = "nomad_vnet"
+
+        # What do I use for "cni"??
+        # network_mode = commented out?
+
+        # Try to use the macvlan network named "nomad_vnet".
+        # network_mode = "nomad_vnet"
+
         # Try to use the macvlan network.
         # network_mode = "macvlan"
         # > [ERROR] client.driver_mgr.docker: failed to start container:
@@ -122,9 +144,6 @@ job "pihole" {
         # >   container_id=<blah>
         # >   error="API error (404): network macvlan not found"
         # Do I need to use the actual network's name?
-
-        # Try to use the macvlan network named "nomad_vnet".
-        network_mode = "nomad_vnet"
 
         # # Use host's IP, ports, etc for networking.
         # network_mode = "host"
