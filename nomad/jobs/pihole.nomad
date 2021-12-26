@@ -29,25 +29,25 @@ job "pihole" {
       # mode     = "fail"
     }
 
-    network {
-      # mode = "cni/nomad-cni-macvlan"
+    # Don't need to define any ports because Pi-Hole is on a macvlan network,
+    # so it gets all its own ports.
+    # network {
+    #   port "dns" {
+    #     to = "53"
+    #   }
 
-      port "dns" {
-        to = "53"
-      }
+    #   port "dhcp" {
+    #     to = "67"
+    #   }
 
-      port "dhcp" {
-        to = "67"
-      }
+    #   port "http" {
+    #     to = "80"
+    #   }
 
-      port "http" {
-        to = "80"
-      }
-
-      port "https" {
-        to = "443"
-      }
-    }
+    #   port "https" {
+    #     to = "443"
+    #   }
+    # }
 
     volume "pihole-data" {
       type      = "host"
@@ -70,8 +70,10 @@ job "pihole" {
       # Docker Container
       driver = "docker"
 
-      # These are Nomad Docker Bind Mounts.
-      # Stored wherever the =host_volume= stanza in the Nomad Client config says they should be.
+      # These are Nomad Docker Bind Mounts; stored wherever the ~host_volume~ stanza in
+      # the Nomad Client config says they should be.
+      # NOTE: This is all that's needed to tell Docker about these. Do not need
+      # any ~mount~, ~volume~, etc in the ~config~ stanza.
       volume_mount {
         volume      = "pihole-data"
         destination = "/etc/pihole"
@@ -91,12 +93,14 @@ job "pihole" {
         #  https://www.nomadproject.io/docs/job-specification/task
         image = "pihole/pihole:latest"
 
-        ports = [
-          "dns",
-          # "dhcp",
-          "http",
-          "https",
-        ]
+        # Don't need to define any ports because Pi-Hole is on a macvlan network,
+        # so it gets all its own ports.
+        # ports = [
+        #   "dns",
+        #   "dhcp",
+        #   "http",
+        #   "https",
+        # ]
 
         #------------------------------
         # Docker Config Options
@@ -106,10 +110,27 @@ job "pihole" {
         # Not sure why we need this or what all should be in it...
         dns_servers = [
           "127.0.0.1",
-          "1.1.1.1",
-          # "8.8.8.8",
-          # "1.0.0.1",
-          # "8.8.4.4",
+          #---
+          # Quad9
+          #---
+          # "9.9.9.9",         # (malware filter, DNSSEC)
+          # "149.112.112.112", # (malware filter, DNSSEC)
+          # "9.9.9.10",        # (DNSSEC)
+          # "149.112.112.10",  # (DNSSEC)
+          "9.9.9.11",          # (malware filter, ECS, DNSSEC)
+          # "149.112.112.11",  # (malware filter, ECS, DNSSEC)
+
+          #---
+          # Google
+          #---
+          # "8.8.8.8", # (ECS, DNSSEC)
+          # "8.8.4.4", # (ECS, DNSSEC)
+
+          #---
+          # Cloudflare
+          #---
+          # "1.1.1.1", # (DNSSEC)
+          # "1.0.0.1", # (DNSSEC)
         ]
 
         # Need the "NET_ADMIN" setting.
@@ -118,8 +139,9 @@ job "pihole" {
         ]
 
         # Use Docker macvlan 192.168.254.2/32:
+        # NOTE: Nomad can't manage a macvlan network. It forwards host ports if you do a network
+        # stanza with ~to = "<port-num>"~...
         network_mode = "pihole_vnet"
-        # Nomad can't manage a macvlan network...
         # sudo docker network create \
         #     --driver macvlan \
         #     --subnet 192.168.254.0/24  \
@@ -127,80 +149,18 @@ job "pihole" {
         #     --gateway 192.168.254.254 \
         #     --opt parent=eth0 \
         #     pihole_vnet
-
-        # Try to use the macvlan network named "nomad_vnet".
-        # network_mode = "nomad_vnet"
-
-        # What do I use for "cni"??
-        # network_mode = commented out?
-
-        # Try to use the macvlan network named "nomad_vnet".
-        # network_mode = "nomad_vnet"
-
-        # Try to use the macvlan network.
-        # network_mode = "macvlan"
-        # > [ERROR] client.driver_mgr.docker: failed to start container:
-        # >   driver=docker
-        # >   container_id=<blah>
-        # >   error="API error (404): network macvlan not found"
-        # Do I need to use the actual network's name?
-
-        # # Use host's IP, ports, etc for networking.
-        # network_mode = "host"
-
-        # These are Docker Volumes; stored in "/var/lib/docker/volumes/<source>/_data".
-        # Do not want that...
-        # mount {
-        #   type     = "volume"
-        #   source   = "pihole-data"
-        #   target   = "/etc/pihole"
-        #   readonly = false
-        # }
-        #
-        # mount {
-        #   type     = "volume"
-        #   source   = "pihole-dnsmasq"
-        #   target   = "/etc/dnsmasq.d"
-        #   readonly = false
-
-        #---
-        # TODO: TRY AGAIN MAYBE? OR DO WE NOT NEED? NOTE WHICH ONE WORKED!
-        #---
-        #
-        # These don't work? Maybe? Not with host volumes defined too maybe?
-        # mount {
-        #   type     = "bind"
-        #   source   = "/srv/nomad/pihole/etc/pihole" # pihole-data
-        #   target   = "/etc/pihole"
-        #   readonly = false
-        # }
-        #
-        # mount {
-        #   type     = "bind"
-        #   source   = "/srv/nomad/pihole/etc/dnsmasq.d" # pihole-dnsmasq
-        #   target   = "/etc/dnsmasq.d"
-        #   readonly = false
-        # }
       }
 
       env {
         TZ           = "US/Pacific"
         WEBPASSWORD  = "I do not like raspberries."
 
-        # TODO: Look & see what other vars I want to set:
+        # Rest of the set-up is in the persistent files.
+
+        # But if I change my mind, look & see what other vars I want to set:
         #   - https://github.com/pi-hole/docker-pi-hole/blob/master/README.md#environment-variables
-        # TODO: Do I need these?
-        # TODO: Updated to the correct values based on what I want in the GUI?
-        # PIHOLE_DNS_  = "8.8.8.8;1.1.1.1"
-
-        # INTERFACE    = "eth0"
-
-        # # Not sure if this'll work?
-        # VIRTUAL_HOST = "home-2019-raspi4"
-        # ServerIP     = "192.168.254.10"
       }
 
-      # TODO: is this comment correct?
       # These are reservations, so just don't set so we can let it use whatever it ends up needing.
       # resources {
       #   cpu    = 100 # 100 MHz
@@ -212,10 +172,11 @@ job "pihole" {
       #   https://www.nomadproject.io/docs/job-specification/service
       service {
         name = "pihole"
-        port = "http"
-        # TODO: try https
-        # Try https for security?
-        # port = "https"
+
+        # Not really sure what I get out of having a port here...
+        # Also not really sure if "driver" is correct, but it is acceptable to Nomad.
+        address_mode = "driver"
+        port = "80"
 
         # TODO: Implement one or more health checks once pi-hole actually is know to actually work.
         # check {
