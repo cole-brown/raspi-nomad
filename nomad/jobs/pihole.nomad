@@ -29,26 +29,32 @@ job "pihole" {
       # mode     = "fail"
     }
 
+    #------------------------------
+    # Network, Ports
+    #------------------------------
     # Don't need to define any ports because Pi-Hole is on a macvlan network,
     # so it gets all its own ports.
     # network {
     #   port "dns" {
     #     to = "53"
     #   }
-
+    #
     #   port "dhcp" {
     #     to = "67"
     #   }
-
+    #
     #   port "http" {
     #     to = "80"
     #   }
-
+    #
     #   port "https" {
     #     to = "443"
     #   }
     # }
 
+    #------------------------------
+    # Volumes: Nomad Client Host Volumes
+    #------------------------------
     volume "pihole-data" {
       type      = "host"
       source    = "pihole-data"
@@ -61,15 +67,18 @@ job "pihole" {
       read_only = false
     }
 
-    #------------------------------
-    # Task
-    #------------------------------
+    #---------------------------------------------------------------------------
+    # Task: Pi-Hole Docker Container
+    #---------------------------------------------------------------------------
     task "pihole" {
       # https://www.nomadproject.io/docs/job-specification/task
 
       # Docker Container
       driver = "docker"
 
+      #------------------------------
+      # Volumes: Docker Bind Volumes
+      #------------------------------
       # These are Nomad Docker Bind Mounts; stored wherever the ~host_volume~ stanza in
       # the Nomad Client config says they should be.
       # NOTE: This is all that's needed to tell Docker about these. Do not need
@@ -151,6 +160,9 @@ job "pihole" {
         #     pihole_vnet
       }
 
+      #------------------------------
+      # Environment Variables
+      #------------------------------
       env {
         TZ           = "US/Pacific"
         WEBPASSWORD  = "I do not like raspberries."
@@ -161,42 +173,53 @@ job "pihole" {
         #   - https://github.com/pi-hole/docker-pi-hole/blob/master/README.md#environment-variables
       }
 
+      #------------------------------
+      # Resource Reservations
+      #------------------------------
       # These are reservations, so just don't set so we can let it use whatever it ends up needing.
       # resources {
       #   cpu    = 100 # 100 MHz
       #   memory = 128 # 128 MB
       # }
 
+      #------------------------------
+      # Consul
+      #------------------------------
       # Register this with Consul. This will make the service addressable after
       # Nomad has placed it on a host and port.
       #   https://www.nomadproject.io/docs/job-specification/service
       service {
         name = "pihole"
 
-        # Not really sure what I get out of having a port here...
-        # Also not really sure if "driver" is correct, but it is acceptable to Nomad.
-        address_mode = "driver"
-        port = "80"
-
-        # TODO: Implement one or more health checks once pi-hole actually is know to actually work.
+        #------------------------------
+        # TODO: Not really sure how to get a health check working with a macvlan Docker service.
+        # This TCP and HTTP check stuff didn't work.
+        #---
+        # # Not really sure what I get out of having a port here...
+        # # Also not really sure if "driver" is correct, but it is acceptable to Nomad.
+        # address_mode = "driver"
+        # port         = "80"
+        #
+        # # Health Check: Simple TCP check?
         # check {
-        #   type     = "tcp"
-        #   interval = "10s"
-        #   timeout  = "2s"
+        #   address_mode = "driver"
+        #   type         = "tcp"
+        #   interval     = "10s"
+        #   timeout      = "2s"
         # }
-
-        # # Health Check
+        #
+        # # Health Check: HTTP admin interface working?
         # check {
-        #   # name     = "alive"
-        #   type = "tcp"
-        #   port = "dns"
-        #   # path     = "/"
-        #   # protocol = "http" # TODO: "https"?
-        #   # port     = "http" # TODO: "https"?
-        #   # tls_skip_verify = true # If doing "https" and if needed.
-        #   interval = "1m"
-        #   timeout  = "10s"
+        #   name         = "Pi-Hole Web Interface Health"
+        #   address_mode = "driver"
+        #   type         = "http"
+        #   protocol     = "http"
+        #   port         = "80"
+        #   path         = "/"
+        #   interval     = "1m"
+        #   timeout      = "10s"
         # }
+        #------------------------------
       }
     }
   }
