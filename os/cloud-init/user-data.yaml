@@ -65,6 +65,7 @@ packages:
   # I just want these.
   # ------------------------------
   - tree
+  - ripgrep
   # ------------------------------
   # These seem commonly needed.
   # ------------------------------
