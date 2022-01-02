@@ -147,10 +147,14 @@ job "pihole" {
           "NET_ADMIN",
         ]
 
-        # Use Docker macvlan 192.168.254.2/32:
-        # NOTE: Nomad can't manage a macvlan network. It forwards host ports if you do a network
-        # stanza with ~to = "<port-num>"~...
-        network_mode = "pihole_vnet"
+        #------------------------------
+        # Docker Network: macvlan
+        #------------------------------
+        #---
+        # Docker command for:
+        #   macvlan 192.168.254.2/32:
+        #   192.168.254.2 - 192.168.254.2 (single IP block)
+        #---
         # sudo docker network create \
         #     --driver macvlan \
         #     --subnet 192.168.254.0/24  \
@@ -158,6 +162,28 @@ job "pihole" {
         #     --gateway 192.168.254.254 \
         #     --opt parent=eth0 \
         #     pihole_vnet
+
+        #---
+        # Docker command for:
+        #   macvlan 192.168.254.0/28:
+        #   192.168.254.0 - 192.168.254.15
+        #---
+        # sudo docker network create \
+        #     --driver macvlan \
+        #     --subnet 192.168.254.0/24  \
+        #     --ip-range 192.168.254.0/28 \
+        #     --gateway 192.168.254.254 \
+        #     --opt parent=eth0 \
+        #     pihole_vnet
+
+        #---
+        # Nomad settings:
+        #---
+        # NOTE: Nomad can't manage a macvlan network. It forwards host ports if you do a network
+        # stanza with ~to = "<port-num>"~...
+        network_mode = "pihole_vnet"
+        # Not needed if doing a /32 CIDR block Docker network.
+        ipv4_address = "192.168.254.2"
       }
 
       #------------------------------
