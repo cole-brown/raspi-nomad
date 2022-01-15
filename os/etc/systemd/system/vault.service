@@ -1,0 +1,64 @@
+#-------------------------------------------------------------------------------
+# Vault Systemd Service
+#-------------------------------------------------------------------------------
+
+#------------------------------
+# CHANGE-LOG:
+#-----------
+# [2022-01-15]
+#   Original created by Frankensteining 'nomad.service' and internet examples.
+# Links:
+#   https://medium.com/hashicorp-engineering/systemd-service-file-for-vault-3e339ff86bc6
+#   https://blog.vivekv.com/hashicorp-vault-systemd-startup-script.html
+#   https://gist.github.com/yunano/66caf8c5ed993bb2f4e3
+#---
+# [NEXT]
+#------------------------------
+
+[Unit]
+Description=Vault
+Documentation=https://www.vaultproject.io/docs
+Wants=network-online.target
+After=network-online.target
+
+# Consul is our backend storage, so we probably need it first...
+Wants=consul.service
+After=consul.service
+
+[Service]
+User=vault
+Group=vault
+ProtectSystem=full
+ProtectHome=read-only
+PrivateTmp=yes
+PrivateDevices=yes
+SecureBits=keep-caps
+AmbientCapabilities=CAP_IPC_LOCK
+Capabilities=CAP_IPC_LOCK+ep
+CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK
+NoNewPrivileges=yes
+ExecStart=/usr/local/bin/vault server -config /etc/vault.d/config
+ExecReload=/bin/kill --signal HUP $MAINPID
+ExecStop=/usr/local/bin/vault step-down
+KillMode=process
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+StartLimitInterval=60
+StartLimitIntervalSec=60
+StartLimitBurst=3
+LimitNOFILE=65536
+LimitMEMLOCK=infinity
+
+# TODO: How to auto-unseal some keys?
+# Like this?
+#   EnvironmentFile=-/etc/sysconfig/vault
+#   ExecStartPost=/bin/bash -c "for key in $KEYS; do /usr/local/sbin/vault unseal $CERT $key; done"
+# Or this?
+#   Environment="MY_KEY=my_favourite_value_today"
+# Officially:
+#   https://learn.hashicorp.com/tutorials/vault/deployment-guide#auto-unseal
+
+[Install]
+WantedBy=multi-user.target
