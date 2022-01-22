@@ -17,9 +17,11 @@ KEYS=(
     "$RASPI_VAULT_KEY_2"
 )
 
+# Will delaying a bit make this work?
+sleep 5s
 for key in "${KEYS[@]}"; do
     vault operator unseal $key
 done
 
-sealed=$(vault status | grep "Sealed")
-echo "Vault $sealed"
+# sealed=$(vault status | grep "Sealed")
+# echo "Vault $sealed"
