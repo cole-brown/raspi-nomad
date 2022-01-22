@@ -12,9 +12,16 @@
 #   https://blog.vivekv.com/hashicorp-vault-systemd-startup-script.html
 #   https://gist.github.com/yunano/66caf8c5ed993bb2f4e3
 #---
+# [2022-01-16]
+#   Added unseal.
+#---
 # [NEXT]
 #------------------------------
 
+
+#------------------------------
+# SECTION: Unit
+#------------------------------
 [Unit]
 Description=Vault
 Documentation=https://www.vaultproject.io/docs
@@ -25,6 +32,9 @@ After=network-online.target
 Wants=consul.service
 After=consul.service
 
+#------------------------------
+# SECTION: Service
+#------------------------------
 [Service]
 User=vault
 Group=vault
@@ -51,14 +61,37 @@ StartLimitBurst=3
 LimitNOFILE=65536
 LimitMEMLOCK=infinity
 
+#------------------------------
+# Unseal the Vault?
+#------------------------------
 # TODO: How to auto-unseal some keys?
-# Like this?
-#   EnvironmentFile=-/etc/sysconfig/vault
-#   ExecStartPost=/bin/bash -c "for key in $KEYS; do /usr/local/sbin/vault unseal $CERT $key; done"
-# Or this?
-#   Environment="MY_KEY=my_favourite_value_today"
+#---
 # Officially:
 #   https://learn.hashicorp.com/tutorials/vault/deployment-guide#auto-unseal
+#
+# This is secure and "production-ready" and the correct way to do things,
+# but requires a cloud (AWS, Azure, etc)...
+#---
+# Hacky:
+#   Get some environment variables somehow, and then use them somehow.
+#
+#   Like this?
+#     # "-" means "Don't error if file does not exist."
+#     EnvironmentFile=-/etc/sysconfig/vault
+#     ExecStartPost=/bin/bash -c "for key in $KEYS; do /usr/local/sbin/vault unseal $CERT $key; done"
+#
+#   Or this?
+#     Environment="MY_KEY=my_favourite_value_today"
+#     ...and then?
+#---
+EnvironmentFile=-/etc/vault.d/systemd/service.env
+ExecStartPost=/etc/vault.d/systemd/init.sh
 
+
+
+
+#------------------------------
+# SECTION: Install
+#------------------------------
 [Install]
 WantedBy=multi-user.target
