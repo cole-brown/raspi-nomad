@@ -11,6 +11,7 @@ set -euo pipefail
 # Vault Service Initialization Script
 #-------------------------------------------------------------------------------
 
-for key in ${RASPI_VAULT_KEYS[@]}; do
-    /usr/local/sbin/vault operator unseal $key
+IFS="$RASPI_KEY_SEP" read -ra KEYS <<< "$RASPI_VAULT_KEYS"
+for key in "${KEYS[@]}"; do
+    echo /usr/local/sbin/vault operator unseal $key
 done
