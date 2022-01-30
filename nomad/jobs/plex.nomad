@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
-# Pi-Hole Docker
+# Plex Docker
 #-------------------------------------------------------------------------------
-# Pi-Hole running on Docker
+# Plex running on Docker
 #
 # Links:
 #   https://www.nomadproject.io/docs/job-specification/job
