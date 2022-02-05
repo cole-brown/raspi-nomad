@@ -51,6 +51,15 @@ client {
   }
 
   #------------------------------
+  # Volumes: Tailscale VPN
+  #------------------------------
+
+  host_volume "tailscale-data" {
+    path      = "/srv/nomad/tailscale/data"
+    read_only = false
+  }
+
+  #------------------------------
   # Volumes: pihole
   #------------------------------
 
@@ -65,11 +74,20 @@ client {
   }
 
   #------------------------------
-  # Volumes: plex
+  # Volumes: Plex Media Server
   #------------------------------
 
   host_volume "plex-config" {
     path      = "/srv/nomad/plex/config"
+    read_only = false
+  }
+
+  #------------------------------
+  # Volumes: Jellyfin Media Server
+  #------------------------------
+
+  host_volume "jellyfin-config" {
+    path      = "/srv/nomad/jellyfin/config"
     read_only = false
   }
 }
