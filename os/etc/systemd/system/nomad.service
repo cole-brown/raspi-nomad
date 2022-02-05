@@ -18,6 +18,13 @@
 # Links:
 #   https://medium.com/swlh/running-hashicorp-nomad-consul-pihole-and-gitea-on-raspberry-pi-3-b-f3f0d66c907
 #   https://janssend.wordpress.com/2020/04/21/nomad-setup/
+#---
+# [2022-01-30]
+#   - Trying to fix bug where Nomad doesn't kill Docker containers on stop.
+#   - Removing a lot of extra settings to see if that works.
+#
+# Links:
+#   https://github.com/hashicorp/guides-configuration/blob/master/nomad/init/systemd/nomad.service
 #------------------------------
 
 [Unit]
@@ -35,15 +42,9 @@ After=consul.service
 [Service]
 ExecStart=/usr/local/bin/nomad agent -config /etc/nomad.d/config
 ExecReload=/bin/kill -s HUP $MAINPID
-KillMode=process
 KillSignal=SIGINT
-LimitNOFILE=infinity
-LimitNPROC=infinity
 Restart=on-failure
-RestartSec=2
-StartLimitBurst=3
-StartLimitInterval=10
-TasksMax=infinity
+#RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
