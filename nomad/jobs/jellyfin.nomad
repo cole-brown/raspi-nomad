@@ -40,35 +40,36 @@ job "jellyfin" {
     }
 
     #------------------------------
-    # Network Ports
+    # Network, Ports
     #------------------------------
-    # https://jellyfin.org/docs/general/networking/index.html
-    network {
-      # Job file we're deriving from has bridge mode.
-      # We're trying "host" to start with since that works good for Plex.
-      # mode = "bridge"
-
-      # Web UI - HTTP
-      port "http" {
-        static = 8096
-      }
-      # Web UI - HTTPS
-      port "https" {
-        static = 8920
-      }
-      # Client Auto-Discovery
-      port "client-discovery" {
-        static = 7359
-      }
-      # Service Auto-Discovery
-      #   - NOTE: Plex also wants this port, so... stop Plex?
-      port "dlna" {
-        static = 1900
-      }
-    }
+    # Don't need to define any ports because it's on a macvlan network,
+    # so it gets all its own ports.
+    # network {
+    #   # Job file we're deriving from has bridge mode.
+    #   # We're trying "host" to start with since that works good for Plex.
+    #   # mode = "bridge"
+    #
+    #   # Web UI - HTTP
+    #   port "http" {
+    #     static = 8096
+    #   }
+    #   # Web UI - HTTPS
+    #   port "https" {
+    #     static = 8920
+    #   }
+    #   # Client Auto-Discovery
+    #   port "client-discovery" {
+    #     static = 7359
+    #   }
+    #   # Service Auto-Discovery
+    #   #   - NOTE: Plex also wants this port, so... stop Plex?
+    #   port "dlna" {
+    #     static = 1900
+    #   }
+    # }
 
     #------------------------------
-    # Host Volumes Used
+    # Volumes: Nomad Client Host Volumes
     #------------------------------
 
     #---
@@ -136,22 +137,39 @@ job "jellyfin" {
         # This Jellyfin Server image is explicitly for ARM64 (with this tag).
         image = "linuxserver/jellyfin:arm64v8-latest"
 
-        ports = [
-          "http",
-          "https",
-          "client-discovery",
-          "dlna",
-        ]
-
-        # Be the host, for networking, basically.
-        # Alternatively, "macvlan" makes a vlan for the container so you can be your own man but still not remap ports.
-        network_mode = "host"
-
-        # Hardware transcoding support. Probably don't need? Maybe?
-        # privileged = "true"
-
         # If image's tag is "latest" or omitted, the docker image will always be pulled regardless of this setting.
-        # force_pull = "true"
+        # But Jellyfin uses a separate tag for ARM, so try enabling this.
+        force_pull = "true"
+
+        # Don't need to define any ports because it's on a macvlan network,
+        # so it gets all its own ports.
+        # ports = [
+        #   "http",
+        #   "https",
+        #   "client-discovery",
+        #   "dlna",
+        # ]
+
+        #------------------------------
+        # Docker Network: macvlan
+        #------------------------------
+        # NOTE: Nomad can't manage a macvlan network. It forwards host ports if you do a network
+        # stanza with ~to = "<port-num>"~...
+        network_mode = "pihole_vnet"
+        # Not needed if doing a /32 CIDR block Docker network.
+        ipv4_address = "192.168.254.12"
+
+        # # Be the host, for networking, basically.
+        # # Alternatively, "macvlan" makes a vlan for the container so you can be your own man but still not remap ports.
+        # network_mode = "host"
+
+        #------------------------------
+        # Misc.
+        #------------------------------
+
+        # Hardware transcoding support.
+        # Plex needs this if hardware transcoding is enabled; haven't looked at if Jellyfin needs it too.
+        # privileged = "true"
       }
 
       env {
@@ -160,7 +178,11 @@ job "jellyfin" {
         # https://www.nomadproject.io/docs/runtime/interpolation
         # "Network-related Variables"
         # Publish server url of whatever host we're on, since we have network type "host".
-        JELLYFIN_PublishedServerUrl = "${env["NOMAD_IP_http"]}"
+        # NOTE: This didn't expand into an IP address. It just stayed as '${env["NOMAD_IP_http"]}'.
+        # JELLYFIN_PublishedServerUrl = "${env["NOMAD_IP_http"]}"
+        JELLYFIN_PublishedServerUrl = "${attr.unique.network.ip-address}"
+        # If that doesn't work, hard code it:
+        # JELLYFIN_PublishedServerUrl = "192.168.254.12"
 
         # Hardware Acceleration
         #   - !!!-NOTE-!!!: Requires active cooling!
@@ -175,16 +197,19 @@ job "jellyfin" {
 
       service {
         name = "jellyfin"
-        port = "http"
+        # port = "http"
 
-        check {
-          type         = "http"
-          address_mode = "host"
-          path         = "/"
-          port         = "http"
-          interval     = "10s"
-          timeout      = "10s"
-        }
+        # Can't health check with macvlan? Or I just haven't figured it out?
+        # Everything I've tried hasn't worked...
+        #   https://www.nomadproject.io/docs/job-specification/service
+        # check {
+        #   type         = "http"
+        #   address_mode = "pihole"
+        #   path         = "/"
+        #   port         = "http"
+        #   interval     = "10s"
+        #   timeout      = "10s"
+        # }
 
         # Hard limit for the =Consul Connect= sidecar service?
         # connect {
