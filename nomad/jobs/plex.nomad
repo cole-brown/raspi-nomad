@@ -27,36 +27,44 @@ job "plex" {
       # mode     = "fail"
     }
 
-    network {
-      port "http" {
-        static = "32400"
-      }
-      port "dlna-udp" {
-        static = "1900"
-      }
-      port "dlna-tcp" {
-        static = "32469"
-      }
-      port "bonjour" {
-        static = "5353"
-      }
-      port "plex-companion" {
-        static = "8324"
-      }
-      port "gdm-10" {
-        static = "32410"
-      }
-      port "gdm-12" {
-        static = "32412"
-      }
-      port "gdm-13" {
-        static = "32413"
-      }
-      port "gdm-14" {
-        static = "32414"
-      }
-    }
+    #------------------------------
+    # Network, Ports
+    #------------------------------
+    # Don't need to define any ports because it's on a macvlan network,
+    # so it gets all its own ports.
+    # network {
+    #   port "http" {
+    #     to = "32400"
+    #   }
+    #   port "dlna-udp" {
+    #     to = "1900"
+    #   }
+    #   port "dlna-tcp" {
+    #     to = "32469"
+    #   }
+    #   port "bonjour" {
+    #     to = "5353"
+    #   }
+    #   port "plex-companion" {
+    #     to = "8324"
+    #   }
+    #   port "gdm-10" {
+    #     to = "32410"
+    #   }
+    #   port "gdm-12" {
+    #     to = "32412"
+    #   }
+    #   port "gdm-13" {
+    #     to = "32413"
+    #   }
+    #   port "gdm-14" {
+    #     to = "32414"
+    #   }
+    # }
 
+    #------------------------------
+    # Volumes: Nomad Client Host Volumes
+    #------------------------------
     # NFS mount.
     volume "files-media" {
       type      = "host"
@@ -71,6 +79,7 @@ job "plex" {
       read_only = false
     }
 
+    # /config
     volume "plex-config" {
       type      = "host"
       source    = "plex-config"
@@ -119,21 +128,41 @@ job "plex" {
         # This Plex Server image is explicitly for ARM64 (with this tag).
         image = "linuxserver/plex:arm64v8-latest"
 
-        ports = [
-          "http",
-          "dlna-udp",
-          "dlna-tcp",
-          "bonjour",
-          "plex-companion",
-          "gdm-10",
-          "gdm-12",
-          "gdm-13",
-          "gdm-14",
-        ]
+        # Don't need to define any ports because it's on a macvlan network,
+        # so it gets all its own ports.
+        # ports = [
+        #   "http",
+        #   "dlna-udp",
+        #   "dlna-tcp",
+        #   "bonjour",
+        #   "plex-companion",
+        #   "gdm-10",
+        #   "gdm-12",
+        #   "gdm-13",
+        #   "gdm-14",
+        # ]
 
-        # Be the host, for networking, basically.
-        # Alternatively, "macvlan" makes a vlan for the container so you can be your own man but still not remap ports.
-        network_mode = "host"
+        #------------------------------
+        # Docker Network: macvlan
+        #------------------------------
+        # NOTE: Nomad can't manage a macvlan network. It forwards host ports if you do a network
+        # stanza with ~to = "<port-num>"~...
+        network_mode = "pihole_vnet"
+        # Not needed if doing a /32 CIDR block Docker network.
+        ipv4_address = "192.168.254.13"
+
+        # # Be a default Docker container with dynamic ports from host mapped into container.
+        # #   - Use ~to = "<port-num>"~ in the ~network~ stanza.
+        # network_mode = "bridge"
+
+        # # Be the host, for networking, basically.
+        # #   - Use ~static = "<port-num>"~ in the ~network~ stanza.
+        # # Alternatively, "macvlan" makes a vlan for the container so you can be your own man but still not remap ports.
+        # network_mode = "host"
+
+        #------------------------------
+        # Misc.
+        #------------------------------
 
         # Hardware transcoding support. Probably don't need? Maybe?
         # privileged = "true"
@@ -164,14 +193,16 @@ job "plex" {
       }
 
       service {
-        port = "http"
+        # port = "http"
         name = "plex"
 
-        check {
-          type     = "tcp"
-          interval = "10s"
-          timeout  = "2s"
-        }
+        # # TODO: If this doesn't work, try http?
+        # check {
+        #   name     = "Plex TCP Health"
+        #   type     = "tcp"
+        #   interval = "10s"
+        #   timeout  = "2s"
+        # }
       }
 
       #------------------------------
