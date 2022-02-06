@@ -31,8 +31,26 @@ sudo docker network create \
 | 192.168.254.9  |                 |            |
 | 192.168.254.10 |  tailscale vpn  |  in-use    |
 | 192.168.254.11 |                 |            |
-| 192.168.254.12 |                 |            |
-| 192.168.254.13 |                 |            |
+| 192.168.254.12 | jellyfin        |  in-use    |
+| 192.168.254.13 | plex            |  in-use    |
 | 192.168.254.14 |                 |            |
 | 192.168.254.15 |                 |            |
 
+
+# Jobs not on `pihole_vnet`
+
+
+## network_mode = "host"
+
+None, currently.
+
+### Formerly
+
+Jellyfin
+Plex
+
+These both want port 1900 currently, so they can't run at the same time.
+  - Should probably switch one or both to `bridge`?
+  - Or just decide that Jellyfin wins over Plex (or vice versa).
+
+Switched Plex to `bridge` network mode, but then the Amazon Fire TV Stick couldn't access it. So I've moved both media servers to the `pihole_vnet` macvlan so that they can have their ports.
