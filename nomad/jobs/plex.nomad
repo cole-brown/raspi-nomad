@@ -128,6 +128,10 @@ job "plex" {
         # This Plex Server image is explicitly for ARM64 (with this tag).
         image = "linuxserver/plex:arm64v8-latest"
 
+        # If image's tag is "latest" or omitted, the docker image will always be pulled regardless of this setting.
+        # But Plex uses a separate tag for ARM, so try enabling this.
+        force_pull = "true"
+
         # Don't need to define any ports because it's on a macvlan network,
         # so it gets all its own ports.
         # ports = [
@@ -166,9 +170,6 @@ job "plex" {
 
         # Hardware transcoding support. Probably don't need? Maybe?
         # privileged = "true"
-
-        # If image's tag is "latest" or omitted, the docker image will always be pulled regardless of this setting.
-        # force_pull = "true"
       }
 
       env {
