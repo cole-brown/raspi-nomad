@@ -180,9 +180,9 @@ job "jellyfin" {
         # Publish server url of whatever host we're on, since we have network type "host".
         # NOTE: This didn't expand into an IP address. It just stayed as '${env["NOMAD_IP_http"]}'.
         # JELLYFIN_PublishedServerUrl = "${env["NOMAD_IP_http"]}"
-        JELLYFIN_PublishedServerUrl = "${attr.unique.network.ip-address}"
+        # JELLYFIN_PublishedServerUrl = "${attr.unique.network.ip-address}"
         # If that doesn't work, hard code it:
-        # JELLYFIN_PublishedServerUrl = "192.168.254.12"
+        JELLYFIN_PublishedServerUrl = "192.168.254.12"
 
         # Hardware Acceleration
         #   - !!!-NOTE-!!!: Requires active cooling!
