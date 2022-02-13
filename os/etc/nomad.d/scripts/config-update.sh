@@ -27,8 +27,8 @@ echo "    ├─ Move into place..."
 sudo mv *.hcl /etc/nomad.d/config
 
 # Reload Nomad service to get changes.
-echo "    ├─ Reload Nomad service..."
-sudo systemctl reload nomad
+echo "    ├─ Restart Nomad service..."
+sudo systemctl restart nomad
 
 echo "    ├─ Nomad Status:"
 echo "    ├─────────────────────────────"

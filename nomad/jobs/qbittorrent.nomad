@@ -1,16 +1,16 @@
 #-------------------------------------------------------------------------------
-# Jackett Docker
+# Qbittorrent Docker
 #-------------------------------------------------------------------------------
-# Jackett (Torrent Tracker API Support) running on Docker
+# Qbittorrent (Torrent Tracker API Support) running on Docker
 #
 # Links:
 #   https://www.nomadproject.io/docs/job-specification/job
 #
-#   https://github.com/Jackett/Jackett
-#   https://hub.docker.com/r/linuxserver/jackett
+#   https://www.qbittorrent.org/
+#   https://hub.docker.com/r/linuxserver/qbittorrent
 #------------------------------
 
-job "jackett" {
+job "qbittorrent" {
   # Default is "global".
   # region      = "global"
   datacenters = ["dc-2021-home"]
@@ -25,7 +25,7 @@ job "jackett" {
   #    value = "blowhole"
   # }
 
-  group "jackett" {
+  group "qbittorrent" {
     # Defaults to 1.
     # count = 1
 
@@ -63,27 +63,27 @@ job "jackett" {
     }
 
     #---
-    # Jackett data storage location.
+    # Qbittorrent data storage location.
     #---
-    volume "jackett-config" {
+    volume "qbittorrent-config" {
       type = "host"
-      source = "jackett-config"
+      source = "qbittorrent-config"
       read_only = false
     }
 
     #------------------------------
     # Task
     #------------------------------
-    task "jackett" {
+    task "qbittorrent" {
       # https://www.nomadproject.io/docs/job-specification/task
 
       # Docker Container
       driver = "docker"
 
       # Use "UID:GID" if the volumes are owned by a non-root user/group.
-      #   ~sudo groupadd --gid 2001 jackett~
-      #   ~sudo useradd --no-create-home --uid 2001 --gid 2001 --no-user-group --shell /usr/sbin/nologin jackett~
-      # user   = "2001:2001" # "jackett:jackett"
+      #   ~sudo groupadd --gid 2001 qbittorrent~
+      #   ~sudo useradd --no-create-home --uid 2001 --gid 2001 --no-user-group --shell /usr/sbin/nologin qbittorrent~
+      # user   = "2001:2001" # "qbittorrent:qbittorrent"
 
       # These are Nomad Docker Bind Mounts.
       # Stored wherever the =host_volume= stanza in the Nomad Client config says they should be.
@@ -94,7 +94,7 @@ job "jackett" {
       }
 
       volume_mount {
-        volume      = "jackett-config"
+        volume      = "qbittorrent-config"
         destination = "/config"
         read_only   = false
       }
@@ -105,9 +105,9 @@ job "jackett" {
         #------------------------------
         # https://www.nomadproject.io/docs/job-specification/task
 
-        # This is the LinuxServer Jackett image.
+        # This is the LinuxServer Qbittorrent image.
         #   - It has a separate Dockerfile for various architectures, and this should grab the correct one.
-        image = "lscr.io/linuxserver/jackett"
+        image = "lscr.io/linuxserver/qbittorrent"
 
         # If image's tag is "latest" or omitted, the docker image will always be pulled regardless of this setting.
         # force_pull = "true"
@@ -124,22 +124,16 @@ job "jackett" {
         # stanza with ~to = "<port-num>"~...
         network_mode = "pihole_vnet"
         # Not needed if doing a /32 CIDR block Docker network.
-        ipv4_address = "192.168.254.6"
+        ipv4_address = "192.168.254.7"
       }
 
       env {
-        TZ = "US/Pacific"
-
-        # Allows Jackett to update inside of the container.
-        # Currently recommended by Jackett: https://hub.docker.com/r/linuxserver/jackett
-        AUTO_UPDATE = true
-
-        # Run Options here:
-        # RUN_OPTS = "<optional>"
+        TZ         = "US/Pacific"
+        WEBUI_PORT = 80
       }
 
       service {
-        name = "jackett"
+        name = "qbittorrent"
       }
 
       #------------------------------
