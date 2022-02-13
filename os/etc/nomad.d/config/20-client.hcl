@@ -99,6 +99,15 @@ client {
     path      = "/srv/nomad/jackett/config"
     read_only = false
   }
+
+  #------------------------------
+  # Volumes: Qbittorrent
+  #------------------------------
+
+  host_volume "qbittorrent-config" {
+    path      = "/srv/nomad/qbittorrent/config"
+    read_only = false
+  }
 }
 
 # Configure Docker.

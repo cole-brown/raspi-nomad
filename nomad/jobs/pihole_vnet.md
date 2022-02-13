@@ -26,7 +26,7 @@ sudo docker network create \
 | 192.168.254.4  |  cloudflared    |  in-use    |
 | 192.168.254.5  | <cloudflared-2> | <reserved> |
 | 192.168.254.6  |  jackett        |  in-use    |
-| 192.168.254.7  |                 |            |
+| 192.168.254.7  |  qbittorrent    |  in-use    |
 | 192.168.254.8  |                 |            |
 | 192.168.254.9  |                 |            |
 | 192.168.254.10 |  tailscale vpn  |  in-use    |
