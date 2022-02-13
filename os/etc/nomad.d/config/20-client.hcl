@@ -90,6 +90,15 @@ client {
     path      = "/srv/nomad/jellyfin/config"
     read_only = false
   }
+
+  #------------------------------
+  # Volumes: Jackett
+  #------------------------------
+
+  host_volume "jackett-config" {
+    path      = "/srv/nomad/jackett/config"
+    read_only = false
+  }
 }
 
 # Configure Docker.
