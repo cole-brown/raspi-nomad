@@ -84,6 +84,11 @@ job "qbittorrent" {
       #   ~sudo groupadd --gid 2001 qbittorrent~
       #   ~sudo useradd --no-create-home --uid 2001 --gid 2001 --no-user-group --shell /usr/sbin/nologin qbittorrent~
       # user   = "2001:2001" # "qbittorrent:qbittorrent"
+      #
+      # Run as user:group `main:main`.
+      # Does `main` work to fix permissions? qBittorrent is saving its own files with
+      # uid:gid of 911:911, which doesn't exist on the Docker host.
+      # user   = "1000:1000" # "main:main"
 
       # These are Nomad Docker Bind Mounts.
       # Stored wherever the =host_volume= stanza in the Nomad Client config says they should be.
@@ -130,6 +135,12 @@ job "qbittorrent" {
       env {
         TZ         = "US/Pacific"
         WEBUI_PORT = 80
+
+        # Run as user:group `main:main`.
+        # Does `main` work to fix permissions? qBittorrent is saving its own files with
+        # uid:gid of 911:911, which doesn't exist on the Docker host.
+        PUID       = 1000
+        PGID       = 1000
       }
 
       service {
