@@ -116,30 +116,46 @@ job "pihole" {
         #------------------------------
         #  https://www.nomadproject.io/docs/drivers/docker
 
-        # Not sure why we need this or what all should be in it...
+        # NOTE [2022-04-23]: I had 127.0.0.1 & 9.9.9.11, and my work laptop was
+        # getting DHCP'd both the Pi-Hole and 9.9.9.11 as DNS servers, which
+        # makes it difficult to access LAN servers by name when the computer
+        # decides to use Quad9 instead of the Pi-Hole.
+        #    - Reduce to just the Pi-Hole?
+        # TODO: Get another Pi-Hole, have them advertise each other as DNS servers?
         dns_servers = [
+          #---
+          # Pi-Hole
+          #---
           "127.0.0.1",
+
           #---
           # Quad9
           #---
-          # "9.9.9.9",         # (malware filter, DNSSEC)
-          # "149.112.112.112", # (malware filter, DNSSEC)
-          # "9.9.9.10",        # (DNSSEC)
-          # "149.112.112.10",  # (DNSSEC)
-          "9.9.9.11",          # (malware filter, ECS, DNSSEC)
-          # "149.112.112.11",  # (malware filter, ECS, DNSSEC)
+          # "9.9.9.11",          # (malware filter, ECS, DNSSEC)
 
+          #------------------------------
+          # Unused
+          #------------------------------
           #---
-          # Google
+          # Quad9
           #---
-          # "8.8.8.8", # (ECS, DNSSEC)
-          # "8.8.4.4", # (ECS, DNSSEC)
+          # # "9.9.9.9",         # (malware filter, DNSSEC)
+          # # "149.112.112.112", # (malware filter, DNSSEC)
+          # # "9.9.9.10",        # (DNSSEC)
+          # # "149.112.112.10",  # (DNSSEC)
+          # # "149.112.112.11",  # (malware filter, ECS, DNSSEC)
 
-          #---
-          # Cloudflare
-          #---
-          # "1.1.1.1", # (DNSSEC)
-          # "1.0.0.1", # (DNSSEC)
+          # #---
+          # # Google
+          # #---
+          # # "8.8.8.8", # (ECS, DNSSEC)
+          # # "8.8.4.4", # (ECS, DNSSEC)
+
+          # #---
+          # # Cloudflare
+          # #---
+          # # "1.1.1.1", # (DNSSEC)
+          # # "1.0.0.1", # (DNSSEC)
         ]
 
         # Need the "NET_ADMIN" setting.
