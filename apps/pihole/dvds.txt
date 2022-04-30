@@ -1,0 +1,92 @@
+total 24
+drwxr-xr-x 2 root root 20480 Nov 25 12:09 ./
+drwxr-xr-x 2 root root  4096 Nov 25 12:19 ../
+drwxr-xr-x 2 root root     0 Aug 28  2020 BATMAN_BEGINS/
+drwxr-xr-x 2 root root     0 Aug 28  2020 BEAN_STANDARD/
+drwxr-xr-x 2 root root     0 Aug 28  2020 BIG_BANG_SEASON_1_DISC_2/
+drwxr-xr-x 2 root root     0 Aug 28  2020 BIG_BANG_SEASON_1_DISK_1/
+drwxr-xr-x 2 root root     0 Aug 28  2020 BIG_BANG_SEASON_1_DISK_3/
+drwxr-xr-x 2 root root     0 Aug 28  2020 BIG_BANG_SEASON_2_DISC_1/
+drwxr-xr-x 2 root root     0 Aug 28  2020 BIG_BANG_SEASON_2_DISC_2/
+drwxr-xr-x 2 root root     0 Aug 28  2020 BIG_BANG_SEASON_2_DISC_3/
+drwxr-xr-x 2 root root     0 Aug 28  2020 BIG_BANG_SEASON_2_DISC_4/
+drwxr-xr-x 2 root root     0 Aug 28  2020 BIG_BANG_SEASON_3_DISC_1/
+drwxr-xr-x 2 root root     0 Aug 28  2020 BIG_BANG_SEASON_3_DISC_2/
+drwxr-xr-x 2 root root     0 Aug 28  2020 BIG_BANG_SEASON_3_DISC_3/
+drwxr-xr-x 2 root root     0 Aug 28  2020 BILL_AND_TEDS_EXCELLENT_ADVEN/
+drwxr-xr-x 2 root root     0 Aug 28  2020 Casa_De_Mi_Padre/
+drwxr-xr-x 2 root root     0 Aug 28  2020 Casino Royale_Movie-Only/
+drwxr-xr-x 2 root root     0 Aug 28  2020 CHRONICLES_OF_RIDDICK/
+drwxr-xr-x 2 root root     0 Aug 28  2020 COWBOY_BEBOP/
+drwxr-xr-x 2 root root     0 Aug 28  2020 DARK_FURY/
+drwxr-xr-x 2 root root     0 Aug 28  2020 DRHORRIBLE/
+drwxr-xr-x 2 root root     0 Aug 28  2020 ELFIN_LIED_VOL_1/
+drwxr-xr-x 2 root root     0 Aug 28  2020 ELFIN_LIED_VOL_2/
+drwxr-xr-x 2 root root     0 Aug 28  2020 EURO_TRIP_US_16X9_UR/
+drwxr-xr-x 2 root root     0 Aug 28  2020 FIFTH_ELEMENT/
+drwxr-xr-x 2 root root     0 Aug 28  2020 FIGHTCLB/
+drwxr-xr-x 2 root root     0 Aug 28  2020 FIGHTCLUB/
+drwxr-xr-x 2 root root     0 Aug 28  2020 GONE_IN_60_SECONDS/
+drwxr-xr-x 2 root root     0 Aug 28  2020 H2G2/
+drwxr-xr-x 2 root root     0 Aug 28  2020 HITCH/
+drwxr-xr-x 2 root root     0 Aug 28  2020 HOOK/
+drwxr-xr-x 2 root root     0 Aug 28  2020 HOT_FUZZ/
+drwxr-xr-x 2 root root     0 Aug 28  2020 JOHNNY_ENGLISH/
+drwxr-xr-x 2 root root     0 Aug 28  2020 Kidnapped_S1_Disc1/
+drwxr-xr-x 2 root root     0 Aug 28  2020 Kidnapped_S1_Disc2/
+drwxr-xr-x 2 root root     0 Aug 28  2020 Kidnapped_S1_Disc3/
+drwxr-xr-x 2 root root     0 Aug 28  2020 KISS_KISS_BANG_BANG/
+drwxr-xr-x 2 root root     0 Aug 28  2020 LEVERAGE_S4_D1/
+drwxr-xr-x 2 root root     0 Aug 28  2020 LEVERAGE_S4_D2/
+drwxr-xr-x 2 root root     0 Aug 28  2020 LEVERAGE_S4_D3/
+drwxr-xr-x 2 root root     0 Aug 28  2020 LEVERAGE_S4_D4/
+drwxr-xr-x 2 root root     0 Aug 28  2020 M8U4TX~M/
+drwxr-xr-x 2 root root     0 Aug 28  2020 MEGAMIND/
+drwxr-xr-x 2 root root     0 Aug 28  2020 MONTY_PYTHON_THE_HOLY_GRAIL/
+drwxr-xr-x 2 root root     0 Aug 28  2020 MONTY_PYTHON_THE_MEANING_OF_LIFE/
+drwxr-xr-x 2 root root     0 Aug 28  2020 MR_DEEDS/
+drwxr-xr-x 2 root root     0 Aug 28  2020 MYSTERY_MEN/
+drwxr-xr-x 2 root root     0 Aug 28  2020 NT20NNW1/
+drwxr-xr-x 2 root root     0 Aug 28  2020 OCEANS_ELEVEN_2001/
+drwxr-xr-x 2 root root     0 Aug 28  2020 OCEANS_THIRTEEN/
+drwxr-xr-x 2 root root     0 Aug 28  2020 OCEANS_TWELVE/
+drwxr-xr-x 2 root root     0 Aug 28  2020 OFFICE_SPACE/
+drwxr-xr-x 2 root root     0 Aug 28  2020 Open Season 2/
+drwxr-xr-x 2 root root     0 Aug 28  2020 PITCH_BLACK/
+drwxr-xr-x 2 root root     0 Aug 28  2020 PRESTIGE/
+drwxr-xr-x 2 root root     0 Aug 28  2020 PRINCESS_BRIDE_CE/
+drwxr-xr-x 2 root root     0 Aug 28  2020 QUANTUM_OF_SOLACE/
+drwxr-xr-x 2 root root     0 Aug 28  2020 RELIGULOUS/
+drwxr-xr-x 2 root root     0 Aug 28  2020 S385EF~1/
+drwxr-xr-x 2 root root     0 Aug 28  2020 SAMURAI_CHAMPLOO_VOL1/
+drwxr-xr-x 2 root root     0 Aug 28  2020 SAMURAI_CHAMPLOO_VOL2/
+drwxr-xr-x 2 root root     0 Aug 28  2020 SAMURAI_CHAMPLOO_VOL3/
+drwxr-xr-x 2 root root     0 Aug 28  2020 SAMURAI_CHAMPLOO_VOL4/
+drwxr-xr-x 2 root root     0 Aug 28  2020 SAMURAI_CHAMPLOO_VOL5/
+drwxr-xr-x 2 root root     0 Aug 28  2020 SCOTT_PILGRIM/
+drwxr-xr-x 2 root root     0 Aug 28  2020 SHAUN_OF_THE_DEAD/
+drwxr-xr-x 2 root root     0 Aug 28  2020 SHERLOCK_HOLMES/
+drwxr-xr-x 2 root root     0 Aug 28  2020 SHM82A~U/
+drwxr-xr-x 2 root root     0 Aug 28  2020 SNATCH/
+drwxr-xr-x 2 root root     0 Aug 29  2020 Star Wars Despecialized Edition/
+drwxr-xr-x 2 root root     0 Aug 28  2020 Step_Brothers/
+drwxr-xr-x 2 root root     0 Aug 28  2020 SWORDFISH/
+drwxr-xr-x 2 root root     0 Aug 28  2020 THEROCK/
+drwxr-xr-x 2 root root     0 Aug 28  2020 TITANIC_SE_DISC1/
+drwxr-xr-x 2 root root     0 Aug 28  2020 TITANIC_SE_DISC2/
+drwxr-xr-x 2 root root     0 Aug 28  2020 TOMB_RAIDER/
+drwxr-xr-x 2 root root     0 Aug 28  2020 TOP_GUN_DISC1/
+drwxr-xr-x 2 root root     0 Aug 28  2020 TRIGUN1/
+drwxr-xr-x 2 root root     0 Aug 28  2020 TRIGUN2/
+drwxr-xr-x 2 root root     0 Aug 28  2020 TRIGUN3/
+drwxr-xr-x 2 root root     0 Aug 28  2020 TRIGUN4/
+drwxr-xr-x 2 root root     0 Aug 28  2020 TRIGUN5/
+drwxr-xr-x 2 root root     0 Aug 28  2020 TRIGUN6/
+drwxr-xr-x 2 root root     0 Aug 28  2020 TRIGUN7/
+drwxr-xr-x 2 root root     0 Aug 28  2020 TRIGUN8/
+drwxr-xr-x 2 root root     0 Aug 29  2020 VENTURE BROS SEASON 4 DISK 1/
+drwxr-xr-x 2 root root     0 Aug 29  2020 VENTURE BROS SEASON 4 DISK 2/
+drwxr-xr-x 2 root root     0 Aug 29  2020 VENTURE BROS VOLUME 3 DISK 1/
+drwxr-xr-x 2 root root     0 Aug 29  2020 VENTURE BROS VOLUME 3 DISK 2/
+drwxr-xr-x 2 root root     0 Aug 29  2020 V_FOR_VENDETTA/
+drwxr-xr-x 2 root root     0 Aug 29  2020 XMEN_FIRST_CLASS/
