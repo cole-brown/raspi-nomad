@@ -35,7 +35,7 @@ client {
   }
 
   #------------------------------
-  # Volumes: General Files
+  # Volumes, Data: General Files
   #------------------------------
 
   # Used by Plex.
@@ -44,14 +44,20 @@ client {
     read_only = false
   }
 
-  # Used by Plex.
+  # Root directory for (most) media.
+  #   - Media library is at "library/streaming/"
   host_volume "files-media" {
     path      = "/mnt/nfs/media"
     read_only = false
   }
 
+  host_volume "files-bree" {
+    path      = "/mnt/nfs/bree"
+    read_only = true
+  }
+
   #------------------------------
-  # Volumes: Tailscale VPN
+  # Volumes, Config: Tailscale VPN
   #------------------------------
 
   host_volume "tailscale-data" {
@@ -60,7 +66,7 @@ client {
   }
 
   #------------------------------
-  # Volumes: pihole
+  # Volumes, Config: pihole
   #------------------------------
 
   host_volume "pihole-data" {
@@ -74,7 +80,7 @@ client {
   }
 
   #------------------------------
-  # Volumes: Plex Media Server
+  # Volumes, Config (Media Server): Plex Media Server
   #------------------------------
 
   host_volume "plex-config" {
@@ -83,7 +89,7 @@ client {
   }
 
   #------------------------------
-  # Volumes: Jellyfin Media Server
+  # Volumes, Config (Media Server): Jellyfin
   #------------------------------
 
   host_volume "jellyfin-config" {
@@ -92,7 +98,7 @@ client {
   }
 
   #------------------------------
-  # Volumes: Jackett
+  # Volumes, Config (Torrent): Jackett
   #------------------------------
 
   host_volume "jackett-config" {
@@ -101,7 +107,7 @@ client {
   }
 
   #------------------------------
-  # Volumes: Qbittorrent
+  # Volumes, Config (Torrent): Qbittorrent
   #------------------------------
 
   host_volume "qbittorrent-config" {
