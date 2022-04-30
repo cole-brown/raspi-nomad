@@ -1,0 +1,2 @@
+//192.168.254.20/media  /mnt/nfs/media/  cifs uid=main,gid=main,user=media-share,password=6W>^%K9@C-.sfVs!o7Hyzh6*8bHMm6,iocharset=utf8  0  0
+//192.168.254.20/bree  /mnt/nfs/bree/  cifs ro,uid=main,gid=main,user=media-share,password=6W>^%K9@C-.sfVs!o7Hyzh6*8bHMm6,iocharset=utf8  0  0
