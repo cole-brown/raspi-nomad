@@ -35,8 +35,11 @@ locale: en_US.UTF-8
 
 manage_etc_hosts: true
 
+# Disable `byobu' terminal multiplexer?
+byobu_by_default: disable
 # Enable 'byobu' terminal multiplexer for all users.
-byobu_by_default: system
+#   - Why do terminal multiplexers have to steal keybinds and be so complicated?
+# byobu_by_default: system
 
 # First boot: Should the root filesystem's partition be resized?
 resize_rootfs: true
