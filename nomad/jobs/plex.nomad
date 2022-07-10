@@ -153,7 +153,7 @@ job "plex" {
         # stanza with ~to = "<port-num>"~...
         network_mode = "pihole_vnet"
         # Not needed if doing a /32 CIDR block Docker network.
-        ipv4_address = "192.168.254.13"
+        ipv4_address = "192.168.50.13"
 
         # # Be a default Docker container with dynamic ports from host mapped into container.
         # #   - Use ~to = "<port-num>"~ in the ~network~ stanza.

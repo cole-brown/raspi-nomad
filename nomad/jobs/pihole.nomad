@@ -168,27 +168,27 @@ job "pihole" {
         #------------------------------
         #---
         # Docker command for:
-        #   macvlan 192.168.254.2/32:
-        #   192.168.254.2 - 192.168.254.2 (single IP block)
+        #   macvlan 192.168.50.2/32:
+        #   192.168.50.2 - 192.168.50.2 (single IP block)
         #---
         # sudo docker network create \
         #     --driver macvlan \
-        #     --subnet 192.168.254.0/24  \
-        #     --ip-range 192.168.254.2/32 \
-        #     --gateway 192.168.254.254 \
+        #     --subnet 192.168.50.0/24  \
+        #     --ip-range 192.168.50.2/32 \
+        #     --gateway 192.168.50.254 \
         #     --opt parent=eth0 \
         #     pihole_vnet
 
         #---
         # Docker command for:
-        #   macvlan 192.168.254.0/28:
-        #   192.168.254.0 - 192.168.254.15
+        #   macvlan 192.168.50.0/28:
+        #   192.168.50.0 - 192.168.50.15
         #---
         # sudo docker network create \
         #     --driver macvlan \
-        #     --subnet 192.168.254.0/24  \
-        #     --ip-range 192.168.254.0/28 \
-        #     --gateway 192.168.254.254 \
+        #     --subnet 192.168.50.0/24  \
+        #     --ip-range 192.168.50.0/28 \
+        #     --gateway 192.168.50.254 \
         #     --opt parent=eth0 \
         #     pihole_vnet
 
@@ -199,7 +199,7 @@ job "pihole" {
         # stanza with ~to = "<port-num>"~...
         network_mode = "pihole_vnet"
         # Not needed if doing a /32 CIDR block Docker network.
-        ipv4_address = "192.168.254.2"
+        ipv4_address = "192.168.50.2"
       }
 
       #------------------------------

@@ -60,8 +60,8 @@ job "ddns" {
         # Not sure if we need this or what all should be in it...
         dns_servers = [
           "127.0.0.1",
-          "192.168.254.2", # raspi
-          # "192.168.254.3", # second raspi, IF I HAD ONE!!
+          "192.168.50.2", # raspi
+          # "192.168.50.3", # second raspi, IF I HAD ONE!!
         ]
 
         #------------------------------

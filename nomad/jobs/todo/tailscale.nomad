@@ -73,8 +73,8 @@ job "tailscale" {
           #---
           # Pi-Hole
           #---
-          "192.168.254.2",
-          # "192.168.254.3", # second pi-hole, if/when I get one...
+          "192.168.50.2",
+          # "192.168.50.3", # second pi-hole, if/when I get one...
         ]
 
         #------------------------------
@@ -89,7 +89,7 @@ job "tailscale" {
         network_mode = "pihole_vnet"
         # Not needed if doing a /32 CIDR block Docker network.
         # Addresses:
-        ipv4_address = "192.168.254.10"
+        ipv4_address = "192.168.50.10"
       }
 
       #------------------------------

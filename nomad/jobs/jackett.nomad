@@ -124,7 +124,7 @@ job "jackett" {
         # stanza with ~to = "<port-num>"~...
         network_mode = "pihole_vnet"
         # Not needed if doing a /32 CIDR block Docker network.
-        ipv4_address = "192.168.254.6"
+        ipv4_address = "192.168.50.6"
       }
 
       env {
