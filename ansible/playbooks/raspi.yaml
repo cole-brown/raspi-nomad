@@ -52,6 +52,7 @@
               # `ansible.builtin.copy` uses `sha1` for checksumming.
               dearmored: "dcece7980f1a183b1d59b26354247a29057786e0"
 
+
     # --------------------------------------------------------------------------
     # [Install] Apt Prep.
     # --------------------------------------------------------------------------
@@ -72,10 +73,36 @@
 
 
     # --------------------------------------------------------------------------
-    # [Install] HashiCorp Stuff: Nomad, Consul, etc.
+    # [Install] HashiCorp Stuff: Nomad
     # --------------------------------------------------------------------------
 
-    # TODO: You are here...
+    - name: Apt | Install | HashiCorp Nomad
+      apt:
+        name: nomad
+        state: present # Just need something installed.
+        # state: latest # Make sure latest version is installed.
+
+    # TODO: Rest of the Nomad set-up / install?
+    #   - Or does that come later?
+
+
+    # --------------------------------------------------------------------------
+    # [Install] HashiCorp Stuff: Consul
+    # --------------------------------------------------------------------------
+
+    - name: Apt | Install | HashiCorp Consul
+      apt:
+        name: nomad
+        state: present # Just need something installed.
+        # state: latest # Make sure latest version is installed.
+
+    # TODO: Rest of the Consul set-up / install?
+    #   - Or does that come later?
+
+
+
+    # TODO: apt autoclean & apt autoremove at the end?
+
 
 
   # # ==============================================================================
