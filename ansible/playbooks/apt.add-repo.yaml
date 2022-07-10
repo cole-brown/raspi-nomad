@@ -1,0 +1,71 @@
+---
+
+# ------------------------------------------------------------------------------
+# Gather Facts
+# ------------------------------------------------------------------------------
+
+# `ansible_facts` has something for `lsb_release -cs` (`ansible_facts.distribution_release`),
+# but nothing exactly for `dpkg --print-architecture`.
+#   - `ansible_facts.architecture`: aarch64
+#   - `dpkg --print-architecture`:  arm64
+# So go get it:
+- name: "Apt | {{ repo_item.name_display }} Repo | Gather Facts | Architecture"
+  command:
+    cmd: dpkg --print-architecture
+  register: cmd_dpkg_architecture
+  changed_when: false
+
+- name: "Apt | {{ repo_item.name_display }} Repo | Gather Facts | Destination"
+  set_fact:
+    path_keyring: "/usr/share/keyrings/{{ repo_item.key.basename }}-archive-keyring.gpg"
+
+# ------------------------------------------------------------------------------
+# Add GPG Key.
+# ------------------------------------------------------------------------------
+
+# # Try to be idempotent by saving armored key...
+# - name: "Apt | {{ repo_item.name_display }} Repo | Get Key"
+#   get_url:
+#     url: "{{ repo_item.key.url }}"
+#     dest: "/usr/share/keyrings/{{ repo_item.key.basename }}.gpg_armored"
+#     # curl -sL {{ repo_item.key.url }} | sha256sum
+#     checksum: "{{ repo_item.key.checksum }}"
+
+# Better yet: Save the key, validate it now, and check it into source control,
+# then we don't need to fetch it with `curl` every time.
+# Example:
+#   cd /path/to/repo/ansible/gpg/
+#   curl -fsSL https://apt.releases.hashicorp.com/gpg -o hashicorp.asc
+#   gpg --dearmor < hashicorp.asc > hashicorp.gpg
+#
+# And then get the checksums:
+#   sha256sum hashicorp.asc hashicorp.gpg
+#     ecc3a34eca4ba12166b58820fd8a71e8f6cc0166d7ed7598a63453648f49c4c5  hashicorp.asc
+#     4796e0478ddd795abb92066ec22a8d84a56360d75f325ccadb7646b224ee70be  hashicorp.gpg
+# Or apparently Ansible uses SHA1?
+#   sha1sum *
+#     640a3c8e3bfb24899e33dc83d414df56a22d3619  hashicorp.asc
+#     dcece7980f1a183b1d59b26354247a29057786e0  hashicorp.gpg
+
+- name: "Apt | {{ repo_item.name_display }} Repo | Copy Key"
+  copy:
+    checksum: "{{ repo_item.key.checksum.dearmored }}"
+    src: "../gpg/{{ repo_item.key.basename }}.gpg"
+    dest: "{{ path_keyring }}"
+
+
+# ------------------------------------------------------------------------------
+# Add Repo.
+# ------------------------------------------------------------------------------
+
+- name: "Apt | {{ repo_item.name_display }} Repo | Add Repo"
+  apt_repository:
+    repo: "deb [arch={{ cmd_dpkg_architecture.stdout }} signed-by={{ path_keyring }}] {{ repo_item.repo.url }} {{ ansible_facts.distribution_release }} {{ repo_item.repo.branch }}"
+    state: present
+
+
+# ------------------------------------------------------------------------------
+# Update Apt Cache?
+# ------------------------------------------------------------------------------
+# Don't bother updating Apt's cache... We are going to add all the repos first,
+# before the apt update / upgrade commands.

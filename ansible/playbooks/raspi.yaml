@@ -14,15 +14,78 @@
   # # Execute the roles.
   # # ============================================================================
   # roles:
-  #   - harden.linux
-  #   - harden.sshd
-  #   - harden.ufw
+  #   - foo.bar
+  #   - foo.qux
+  #   - narf
 
   # ============================================================================
   # Tasks:
   # ============================================================================
   tasks:
-    - name: Print | Facts
-      ansible.builtin.debug:
-        var: ansible_facts
+    # # --------------------------------------------------------------------------
+    # # Debug
+    # # --------------------------------------------------------------------------
+    # - name: Print | Facts
+    #   ansible.builtin.debug:
+    #     var: ansible_facts
 
+    # --------------------------------------------------------------------------
+    # [Install] Apt Repos
+    # --------------------------------------------------------------------------
+    # Add all extra apt repos before we run apt update/upgarde.
+
+    - name: Apt | HashiCorp Repo
+      include_tasks: "apt.add-repo.yaml"
+      vars:
+        repo_item:
+          name_display: HashiCorp
+          repo:
+            # For repos added like: `deb [{{ architecture }}] URL {{ distribution_release }} BRANCH`
+            url: https://apt.releases.hashicorp.com/
+            branch: main
+          key:
+            url: https://apt.releases.hashicorp.com/gpg
+            basename: hashicorp # hashicorp.asc, hashicorp.gpg
+            checksum:
+              # gpg --dearmor < /path/to/repo/ansible/gpg/hashicorp.asc | sha1sum
+              # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html
+              # `ansible.builtin.copy` uses `sha1` for checksumming.
+              dearmored: "dcece7980f1a183b1d59b26354247a29057786e0"
+
+    # --------------------------------------------------------------------------
+    # [Install] Apt Prep.
+    # --------------------------------------------------------------------------
+    # Update the apt cache and upgrade existing packages.
+
+    - name: Apt | Update Cache
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+      # Don't care if this says the cache was old - only care if that causes other
+      # steps to do something. So the status of this isn't as important - those
+      # other steps will say if they changed.
+      changed_when: false
+
+    - name: Apt | Upgrade
+      apt:
+        upgrade: yes
+
+
+    # --------------------------------------------------------------------------
+    # [Install] HashiCorp Stuff: Nomad, Consul, etc.
+    # --------------------------------------------------------------------------
+
+    # TODO: You are here...
+
+
+  # # ==============================================================================
+  # # Handlers
+  # # ==============================================================================
+  # handlers:
+  #   # NOTE: Some handlers in the roles.
+
+  #   # Restart `foo` service to pick up new config settings.
+  #   - name: restart-service-foo
+  #     service:
+  #       name: foo
+  #       state: restarted
