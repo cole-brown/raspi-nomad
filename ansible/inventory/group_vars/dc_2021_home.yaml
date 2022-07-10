@@ -1,0 +1,8 @@
+---
+# https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html
+
+# --------------------------------------------------------------------------
+# Set whole group to use Python3.
+# --------------------------------------------------------------------------
+# https://docs.ansible.com/ansible/latest/reference_appendices/python_3_support.html
+ansible_python_interpreter: /usr/bin/python3

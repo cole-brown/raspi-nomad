@@ -1,0 +1,8 @@
+---
+
+dc_2021_home:
+  hosts:
+    home_2019_raspi4:
+      ansible_become: true
+      ansible_host: "192.168.50.16"
+      ansible_user: "main"
