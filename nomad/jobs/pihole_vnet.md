@@ -4,15 +4,15 @@
 
 Creates a network of:
   - type: `macvlan`
-  - CIDR: `192.168.254.0/28`
-    - 192.168.254.0 - 192.168.254.15
+  - CIDR: `192.168.50.0/28`
+    - 192.168.50.0 - 192.168.50.15
 
 ``` bash
 sudo docker network create \
     --driver macvlan \
-    --subnet 192.168.254.0/24  \
-    --ip-range 192.168.254.0/28 \
-    --gateway 192.168.254.254 \
+    --subnet 192.168.50.0/24  \
+    --ip-range 192.168.50.0/28 \
+    --gateway 192.168.50.254 \
     --opt parent=eth0 \
     pihole_vnet
 ```
@@ -21,20 +21,20 @@ sudo docker network create \
 
 | Address        | For             | Used?      |
 |----------------|-----------------|------------|
-| 192.168.254.2  |  pihole         |  in-use    |
-| 192.168.254.3  | <pihole-2>      | <reserved> |
-| 192.168.254.4  |  cloudflared    |  in-use    |
-| 192.168.254.5  | <cloudflared-2> | <reserved> |
-| 192.168.254.6  |  jackett        |  in-use    |
-| 192.168.254.7  |  qbittorrent    |  in-use    |
-| 192.168.254.8  |                 |            |
-| 192.168.254.9  |                 |            |
-| 192.168.254.10 |  tailscale vpn  |  in-use    |
-| 192.168.254.11 |                 |            |
-| 192.168.254.12 | jellyfin        |  in-use    |
-| 192.168.254.13 | plex            |  in-use    |
-| 192.168.254.14 |                 |            |
-| 192.168.254.15 |                 |            |
+| 192.168.50.2  |  pihole         |  in-use    |
+| 192.168.50.3  | <pihole-2>      | <reserved> |
+| 192.168.50.4  |  cloudflared    |  in-use    |
+| 192.168.50.5  | <cloudflared-2> | <reserved> |
+| 192.168.50.6  |  jackett        |  in-use    |
+| 192.168.50.7  |  qbittorrent    |  in-use    |
+| 192.168.50.8  |  handbrake      |  in-use    |
+| 192.168.50.9  |                 |            |
+| 192.168.50.10 |  tailscale vpn  |  in-use    |
+| 192.168.50.11 |                 |            |
+| 192.168.50.12 | jellyfin        |  in-use    |
+| 192.168.50.13 | plex            |  in-use    |
+| 192.168.50.14 |                 |            |
+| 192.168.50.15 |                 |            |
 
 
 # Jobs not on `pihole_vnet`

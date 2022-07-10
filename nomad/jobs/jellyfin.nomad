@@ -157,7 +157,7 @@ job "jellyfin" {
         # stanza with ~to = "<port-num>"~...
         network_mode = "pihole_vnet"
         # Not needed if doing a /32 CIDR block Docker network.
-        ipv4_address = "192.168.254.12"
+        ipv4_address = "192.168.50.12"
 
         # # Be the host, for networking, basically.
         # # Alternatively, "macvlan" makes a vlan for the container so you can be your own man but still not remap ports.
@@ -182,7 +182,7 @@ job "jellyfin" {
         # JELLYFIN_PublishedServerUrl = "${env["NOMAD_IP_http"]}"
         # JELLYFIN_PublishedServerUrl = "${attr.unique.network.ip-address}"
         # If that doesn't work, hard code it:
-        JELLYFIN_PublishedServerUrl = "192.168.254.12"
+        JELLYFIN_PublishedServerUrl = "192.168.50.12"
 
         # Hardware Acceleration
         #   - !!!-NOTE-!!!: Requires active cooling!
