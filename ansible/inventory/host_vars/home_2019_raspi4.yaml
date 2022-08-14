@@ -10,4 +10,9 @@ nfs:
       # source: //home-2017-desk.local/media
       source: //192.168.50.20/media
       directory: /mnt/nfs/media
-      options: "user=media-share,password=6W>^%K9@C-.sfVs!o7Hyzh6*8bHMm6',iocharset=utf8,systemd.automount"
+      options: "uid=main,gid=main,user=media-share,password=6W>^%K9@C-.sfVs!o7Hyzh6*8bHMm6,iocharset=utf8"
+    # - type: cifs
+    #   # source: //home-2017-desk.local/bree
+    #   source: //192.168.50.20/bree
+    #   directory: /mnt/nfs/bree
+    #   options: "ro,uid=main,gid=main,user=media-share,password=6W>^%K9@C-.sfVs!o7Hyzh6*8bHMm6,iocharset=utf8"

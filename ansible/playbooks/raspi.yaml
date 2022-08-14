@@ -125,9 +125,33 @@
     #   - Or does that come later?
 
 
+    # --------------------------------------------------------------------------
+    # [Install] Network File Share
+    # --------------------------------------------------------------------------
 
-    # TODO: apt autoclean & apt autoremove at the end?
+    - name: Apt | Install | CIFS Utils (for NFS)
+      apt:
+        name: cifs-utils
+        state: present
 
+
+    # --------------------------------------------------------------------------
+    # [Mount] Network File Share
+    # --------------------------------------------------------------------------
+
+    - name: NFS | Root Directory | Create
+      file:
+        state: directory
+        path: "/mnt/nfs"
+        owner: "{{ os.user }}"
+        group: "{{ os.group }}"
+        recurse: no
+
+    - name: NFS | Mount Directory
+      include_tasks: "nfs.add-mount.yaml"
+      with_items: "{{ nfs.mounts }}"
+      loop_control:
+        loop_var: mount_item
 
 
     # --------------------------------------------------------------------------
@@ -147,8 +171,6 @@
   # # Handlers
   # # ==============================================================================
   # handlers:
-  #   # NOTE: Some handlers in the roles.
-
   #   # Restart `foo` service to pick up new config settings.
   #   - name: restart-service-foo
   #     service:

@@ -1,0 +1,27 @@
+---
+
+# ------------------------------------------------------------------------------
+# Add a Mount Directory.
+# ------------------------------------------------------------------------------
+
+- name: NFS | Mount Directory | {{ mount_item.directory }} | Create
+  file:
+    state: directory
+    path: "{{ mount_item.directory }}"
+    owner: "{{ os.user }}"
+    group: "{{ os.group }}"
+    recurse: no
+
+- name: NFS | Mount Directory | {{ mount_item.directory }} | Mount
+  mount:
+    backup: yes
+    state: mounted # Attempt to mount if not mounted.
+    # state: remounted # Always mount, even if already mounted.
+    # state: present # Just ensure it's in fstab.
+    fstype: "{{ mount_item.type }}"
+    path: "{{ mount_item.directory }}"
+    src: "{{ mount_item.source }}"
+    opts: "{{ mount_item.options }}"
+    # passno: 0
+    # dump: 0
+  notify:
