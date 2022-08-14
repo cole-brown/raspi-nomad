@@ -25,9 +25,34 @@
     # # --------------------------------------------------------------------------
     # # Debug
     # # --------------------------------------------------------------------------
+    #
     # - name: Print | Facts
     #   ansible.builtin.debug:
     #     var: ansible_facts
+    #
+    # - name: Print | Vars | Host
+    #   ansible.builtin.debug:
+    #     var: hostvars["home_2019_raspi4"]
+    #
+    # - name: Print | Vars | Group
+    #   ansible.builtin.debug:
+    #     var: groups
+
+
+    # --------------------------------------------------------------------------
+    # [Set-Up] Gather Facts
+    # --------------------------------------------------------------------------
+    - name: Git Root | Gather Fact
+      delegate_to: localhost
+      command:
+        cmd: "git rev-parse --show-toplevel"
+      register: cmd_git_root
+      changed_when: false
+
+    - name: Git Root | Set Fact
+      set_fact:
+        path_git_root: "{{ cmd_git_root.stdout }}"
+
 
     # --------------------------------------------------------------------------
     # [Install] Apt Repos
@@ -92,7 +117,7 @@
 
     - name: Apt | Install | HashiCorp Consul
       apt:
-        name: nomad
+        name: consul
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
 
@@ -103,6 +128,19 @@
 
     # TODO: apt autoclean & apt autoremove at the end?
 
+
+
+    # --------------------------------------------------------------------------
+    # [Clean-Up]
+    # --------------------------------------------------------------------------
+
+    - name: Apt | Auto-Clean
+      apt:
+        autoclean: yes
+
+    - name: Apt | Auto-Remove
+      apt:
+        autoremove: yes
 
 
   # # ==============================================================================
