@@ -6,3 +6,9 @@ dc_2021_home:
       ansible_become: true
       ansible_host: "192.168.50.16"
       ansible_user: "main"
+      os:
+        user: main
+        group: main
+      nomad:
+        root: /srv/nomad
+        data: /srv/nomad/data
