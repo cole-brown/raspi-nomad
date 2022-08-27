@@ -55,9 +55,57 @@
 
 
     # --------------------------------------------------------------------------
+    # [Install] Prerequisites
+    # --------------------------------------------------------------------------
+
+    - name: Apt | Install | ca-certificates
+      apt:
+        name: ca-certificates
+        state: present # Just need something installed.
+        # state: latest # Make sure latest version is installed.
+
+    - name: Apt | Install | gnupg
+      apt:
+        name: gnupg
+        state: present # Just need something installed.
+        # state: latest # Make sure latest version is installed.
+
+    - name: Apt | Install | curl
+      apt:
+        name: curl
+        state: present # Just need something installed.
+        # state: latest # Make sure latest version is installed.
+
+    - name: Apt | Install | lsb-release
+      apt:
+        name: lsb-release
+        state: present # Just need something installed.
+        # state: latest # Make sure latest version is installed.
+
+
+    # --------------------------------------------------------------------------
     # [Install] Apt Repos
     # --------------------------------------------------------------------------
     # Add all extra apt repos before we run apt update/upgarde.
+
+    - name: Apt | Docker Repo
+      include_tasks: "apt.add-repo.yaml"
+      vars:
+        repo_item:
+          name_display: Docker
+          repo:
+            # For repos added like: `deb [{{ architecture }} signed-by={{ dearmored }}] URL {{ distribution_release }} BRANCH`
+            url: https://download.docker.com/linux/ubuntu
+            branch: stable
+          key:
+            url: https://download.docker.com/linux/ubuntu/gpg
+            basename: docker # docker.asc, docker.gpg
+            checksum:
+              # curl -fsSL https://download.docker.com/linux/ubuntu/gpg > /tmp/docker.asc
+              # gpg --dearmor < /tmp/docker.asc | sha1sum
+              # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html
+              # `ansible.builtin.copy` uses `sha1` for checksumming.
+              dearmored: "7c67919f823e005af75293a0edac7d0799252213"
 
     - name: Apt | HashiCorp Repo
       include_tasks: "apt.add-repo.yaml"
@@ -98,17 +146,70 @@
 
 
     # --------------------------------------------------------------------------
+    # [Install] Docker
+    # --------------------------------------------------------------------------
+
+    # ------------------------------
+    # Install
+    # ------------------------------
+    - name: Apt | Install | Docker Container Engine
+      apt:
+        name: docker-ce
+        state: present # Just need something installed.
+        # state: latest # Make sure latest version is installed.
+
+    - name: Apt | Install | Docker CE CLI
+      apt:
+        name: docker-ce-cli
+        state: present # Just need something installed.
+        # state: latest # Make sure latest version is installed.
+
+    - name: Apt | Install | containerd.io
+      apt:
+        name: containerd.io
+        state: present # Just need something installed.
+        # state: latest # Make sure latest version is installed.
+
+    - name: Apt | Install | Docker Compose Plugin
+      apt:
+        name: docker-compose-plugin
+        state: present # Just need something installed.
+        # state: latest # Make sure latest version is installed.
+
+
+    # --------------------------------------------------------------------------
     # [Install] HashiCorp Stuff: Nomad
     # --------------------------------------------------------------------------
 
+    # ------------------------------
+    # Install
+    # ------------------------------
     - name: Apt | Install | HashiCorp Nomad
       apt:
         name: nomad
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
 
-    # TODO: Rest of the Nomad set-up / install?
-    #   - Or does that come later?
+    # ------------------------------
+    # Configure
+    # ------------------------------
+    - name: Nomad | Root Directory | Create
+      file:
+        state: directory
+        path: "/srv/nomad"
+        owner: "nomad"
+        group: "nomad"
+        recurse: no
+
+    #  If you do not run Nomad as root, make sure you add the Nomad user to the
+    #  Docker group so Nomad can communicate with the Docker daemon.
+    #    - https://www.nomadproject.io/docs/drivers/docker#client-requirements
+    #  Just add it to the Docker group regardless?
+    - name: Nomad | User Groups | Docker
+      user:
+        name: nomad
+        groups: docker
+        append: yes
 
 
     # --------------------------------------------------------------------------
@@ -136,7 +237,7 @@
 
 
     # --------------------------------------------------------------------------
-    # [Mount] Network File Share
+    # [Mount] Network File Shares
     # --------------------------------------------------------------------------
 
     - name: NFS | Root Directory | Create
