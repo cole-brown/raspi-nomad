@@ -42,6 +42,7 @@
     # --------------------------------------------------------------------------
     # [Set-Up] Gather Facts
     # --------------------------------------------------------------------------
+
     - name: Git Root | Gather Fact
       delegate_to: localhost
       command:
@@ -63,24 +64,28 @@
         name: ca-certificates
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
+      when: run.apt.install.docker
 
     - name: Apt | Install | gnupg
       apt:
         name: gnupg
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
+      when: run.apt.install.docker
 
     - name: Apt | Install | curl
       apt:
         name: curl
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
+      when: run.apt.install.docker
 
     - name: Apt | Install | lsb-release
       apt:
         name: lsb-release
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
+      when: run.apt.install.docker
 
 
     # --------------------------------------------------------------------------
@@ -106,6 +111,7 @@
               # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html
               # `ansible.builtin.copy` uses `sha1` for checksumming.
               dearmored: "7c67919f823e005af75293a0edac7d0799252213"
+      when: run.apt.repo
 
     - name: Apt | HashiCorp Repo
       include_tasks: "apt.add-repo.yaml"
@@ -124,6 +130,7 @@
               # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html
               # `ansible.builtin.copy` uses `sha1` for checksumming.
               dearmored: "dcece7980f1a183b1d59b26354247a29057786e0"
+      when: run.apt.repo
 
 
     # --------------------------------------------------------------------------
@@ -134,19 +141,20 @@
     - name: Apt | Update Cache
       apt:
         update_cache: true
-        cache_valid_time: 3600
-      # Don't care if this says the cache was old - only care if that causes other
-      # steps to do something. So the status of this isn't as important - those
-      # other steps will say if they changed.
+        cache_valid_time: 1440 # seconds == 4 hour
+      # Don't care if this says the cache was old - only care if that causes
+      # other steps to do something. So the status of this isn't as important -
+      # those other steps will say if they changed.
       changed_when: false
 
     - name: Apt | Upgrade
       apt:
         upgrade: yes
+      when: run.apt.upgrade
 
 
     # --------------------------------------------------------------------------
-    # [Install] Docker
+    # Docker
     # --------------------------------------------------------------------------
 
     # ------------------------------
@@ -157,28 +165,32 @@
         name: docker-ce
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
+      when: run.apt.install.docker
 
     - name: Apt | Install | Docker CE CLI
       apt:
         name: docker-ce-cli
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
+      when: run.apt.install.docker
 
     - name: Apt | Install | containerd.io
       apt:
         name: containerd.io
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
+      when: run.apt.install.docker
 
     - name: Apt | Install | Docker Compose Plugin
       apt:
         name: docker-compose-plugin
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
+      when: run.apt.install.docker
 
 
     # --------------------------------------------------------------------------
-    # [Install] HashiCorp Stuff: Nomad
+    # HashiCorp Stuff: Nomad
     # --------------------------------------------------------------------------
 
     # ------------------------------
@@ -189,6 +201,7 @@
         name: nomad
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
+      when: run.apt.install.nomad
 
     # ------------------------------
     # Configure
@@ -200,6 +213,7 @@
         owner: "nomad"
         group: "nomad"
         recurse: no
+      when: run.config.nomad
 
     #  If you do not run Nomad as root, make sure you add the Nomad user to the
     #  Docker group so Nomad can communicate with the Docker daemon.
@@ -210,6 +224,8 @@
         name: nomad
         groups: docker
         append: yes
+      when: run.config.nomad
+
     - name: Nomad | Config Files | /etc/nomad.d
       copy:
         src: "{{ path_git_root }}/os/etc/nomad.d"
@@ -219,6 +235,7 @@
         mode: "u=rw,go=r"
         directory_mode: "u=rwx,go=rx"
       register: config_file_nomad
+      when: run.config.nomad
       # notify:
       #   - restart-service-nomad
 
@@ -231,6 +248,7 @@
         mode: "u=rw,go=r"
         directory_mode: "u=rwx,go=rx"
       register: systemd_file_nomad
+      when: run.config.nomad
       # notify:
       #   - restart-service-nomad
 
@@ -239,6 +257,7 @@
         daemon_reload: yes
       when:
         - systemd_file_nomad.changed
+        - run.config.nomad
 
     - name: Nomad | Service | Enable
       service:
@@ -247,6 +266,7 @@
         enabled: true
         state: started
       register: systemd_service_enabled_nomad
+      when: run.config.nomad
 
     - name: Nomad | Service | Restart
       service:
@@ -255,6 +275,7 @@
       when:
         - systemd_file_nomad.changed or config_file_nomad.changed
         - not systemd_service_enabled_nomad.changed
+        - run.config.nomad
 
     - name: Nomad | Web UI | Check
       uri:
@@ -275,6 +296,7 @@
         name: consul
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
+      when: run.apt.install.consul
 
     # ------------------------------
     # Configure
@@ -288,6 +310,7 @@
         mode: "u=rw,go=r"
         directory_mode: "u=rwx,go=rx"
       register: config_file_consul
+      when: run.config.consul
       # notify:
       #   - restart-service-consul
 
@@ -300,6 +323,7 @@
         mode: "u=rw,go=r"
         directory_mode: "u=rwx,go=rx"
       register: systemd_file_consul
+      when: run.config.consul
       # notify:
       #   - restart-service-consul
 
@@ -308,6 +332,7 @@
         daemon_reload: yes
       when:
         - systemd_file_consul.changed
+        - run.config.consul
 
     - name: Consul | Service | Enable
       service:
@@ -316,6 +341,7 @@
         enabled: true
         state: started
       register: systemd_service_enabled_consul
+      when: run.config.consul
 
     - name: Consul | Service | Restart
       service:
@@ -324,6 +350,7 @@
       when:
         - systemd_file_consul.changed or config_file_consul.changed
         - not systemd_service_enabled_consul.changed
+        - run.config.consul
 
     - name: Consul | Web UI | Check
       uri:
@@ -333,19 +360,21 @@
 
 
     # --------------------------------------------------------------------------
-    # [Install] Network File Share
+    # Network File Share
     # --------------------------------------------------------------------------
 
+    # ------------------------------
+    # Install
+    # ------------------------------
     - name: Apt | Install | CIFS Utils (for NFS)
       apt:
         name: cifs-utils
         state: present
+      when: run.apt.install.cifs
 
-
-    # --------------------------------------------------------------------------
-    # [Mount] Network File Shares
-    # --------------------------------------------------------------------------
-
+    # ------------------------------
+    # Mount
+    # ------------------------------
     - name: NFS | Root Directory | Create
       file:
         state: directory
@@ -353,12 +382,14 @@
         owner: "{{ os.user }}"
         group: "{{ os.group }}"
         recurse: no
+      when: run.config.cifs
 
     - name: NFS | Mount Directory
       include_tasks: "nfs.add-mount.yaml"
       with_items: "{{ nfs.mounts }}"
       loop_control:
         loop_var: mount_item
+      when: run.config.cifs
 
 
     # --------------------------------------------------------------------------
@@ -368,10 +399,12 @@
     - name: Apt | Auto-Clean
       apt:
         autoclean: yes
+      when: run.apt.clean_up
 
     - name: Apt | Auto-Remove
       apt:
         autoremove: yes
+      when: run.apt.clean_up
 
 
   # ============================================================================
