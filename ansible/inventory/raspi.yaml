@@ -14,16 +14,18 @@ dc_2021_home:
         data: /srv/nomad/data
       # Speed up playbook testing...
       run:
-        apt:
-          install:
-            docker: no
-            nomad: no
-            consul: no
-            cifs: no
-          repo: no
-          upgrade: no
-          clean_up: no
-        config:
+        install:
+          docker: no
           nomad: no
           consul: no
           cifs: no
+        apt_repo: no
+        apt_upgrade: no
+        apt_clean_up: no
+        config:
+          docker: no
+          nomad: no
+          consul: no
+          cifs: no
+        nomad:
+          pihole: no

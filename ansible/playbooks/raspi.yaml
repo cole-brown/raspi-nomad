@@ -64,28 +64,28 @@
         name: ca-certificates
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
-      when: run.apt.install.docker
+      when: run.install.docker
 
     - name: Apt | Install | gnupg
       apt:
         name: gnupg
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
-      when: run.apt.install.docker
+      when: run.install.docker
 
     - name: Apt | Install | curl
       apt:
         name: curl
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
-      when: run.apt.install.docker
+      when: run.install.docker
 
     - name: Apt | Install | lsb-release
       apt:
         name: lsb-release
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
-      when: run.apt.install.docker
+      when: run.install.docker
 
 
     # --------------------------------------------------------------------------
@@ -111,7 +111,7 @@
               # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html
               # `ansible.builtin.copy` uses `sha1` for checksumming.
               dearmored: "7c67919f823e005af75293a0edac7d0799252213"
-      when: run.apt.repo
+      when: run.apt_repo
 
     - name: Apt | HashiCorp Repo
       include_tasks: "apt.add-repo.yaml"
@@ -130,7 +130,7 @@
               # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html
               # `ansible.builtin.copy` uses `sha1` for checksumming.
               dearmored: "dcece7980f1a183b1d59b26354247a29057786e0"
-      when: run.apt.repo
+      when: run.apt_repo
 
 
     # --------------------------------------------------------------------------
@@ -150,7 +150,7 @@
     - name: Apt | Upgrade
       apt:
         upgrade: yes
-      when: run.apt.upgrade
+      when: run.apt_upgrade
 
 
     # --------------------------------------------------------------------------
@@ -165,28 +165,53 @@
         name: docker-ce
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
-      when: run.apt.install.docker
+      when: run.install.docker
 
     - name: Apt | Install | Docker CE CLI
       apt:
         name: docker-ce-cli
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
-      when: run.apt.install.docker
+      when: run.install.docker
 
     - name: Apt | Install | containerd.io
       apt:
         name: containerd.io
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
-      when: run.apt.install.docker
+      when: run.install.docker
 
     - name: Apt | Install | Docker Compose Plugin
       apt:
         name: docker-compose-plugin
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
-      when: run.apt.install.docker
+      when: run.install.docker
+
+    # Required for `community.docker.docker_network` Ansible module.
+    # https://docs.ansible.com/ansible/latest/collections/community/docker/docker_network_module.html
+    - name: PIP | Install | Docker SDK for Python
+      pip:
+        name: docker
+        state: present # Just need something installed.
+        # state: latest # Make sure latest version is installed.
+      when: run.install.docker
+
+    # ------------------------------
+    # Config
+    # ------------------------------
+    - name: Docker | Network | Create
+      docker_network:
+        name: pihole_vnet
+        driver: macvlan
+        driver_options:
+          parent: eth0
+        ipam_config:
+          - subnet: 192.168.50.0/24
+            iprange: 192.168.50.0/28
+            gateway: 192.168.50.1
+        state: present
+      when: run.config.docker
 
 
     # --------------------------------------------------------------------------
@@ -201,7 +226,7 @@
         name: nomad
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
-      when: run.apt.install.nomad
+      when: run.install.nomad
 
     # ------------------------------
     # Configure
@@ -296,7 +321,7 @@
         name: consul
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
-      when: run.apt.install.consul
+      when: run.install.consul
 
     # ------------------------------
     # Configure
@@ -357,8 +382,6 @@
         # NOTE: `8500` is the default port for Consul's web UI & `dc-2021-home` is our datacenter name in Consul/Nomad.
         url: "http://{{ ansible_host }}:8500/ui/dc-2021-home/services"
       when: run.config.consul
-
-
     # --------------------------------------------------------------------------
     # Network File Share
     # --------------------------------------------------------------------------
@@ -370,7 +393,7 @@
       apt:
         name: cifs-utils
         state: present
-      when: run.apt.install.cifs
+      when: run.install.cifs
 
     # ------------------------------
     # Mount
@@ -399,12 +422,12 @@
     - name: Apt | Auto-Clean
       apt:
         autoclean: yes
-      when: run.apt.clean_up
+      when: run.apt_clean_up
 
     - name: Apt | Auto-Remove
       apt:
         autoremove: yes
-      when: run.apt.clean_up
+      when: run.apt_clean_up
 
 
   # ============================================================================

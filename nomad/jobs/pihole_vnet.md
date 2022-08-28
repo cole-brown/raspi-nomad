@@ -12,15 +12,16 @@ sudo docker network create \
     --driver macvlan \
     --subnet 192.168.50.0/24  \
     --ip-range 192.168.50.0/28 \
-    --gateway 192.168.50.254 \
+    --gateway 192.168.50.1 \
     --opt parent=eth0 \
     pihole_vnet
 ```
 
 ## Addresses in Use
 
-| Address        | For             | Used?      |
-|----------------|-----------------|------------|
+| Address       | For             | Used?      |
+|---------------|-----------------|------------|
+| 192.168.50.1  | --router--      | --in-use-- |
 | 192.168.50.2  |  pihole         |  in-use    |
 | 192.168.50.3  | <pihole-2>      | <reserved> |
 | 192.168.50.4  |  cloudflared    |  in-use    |
