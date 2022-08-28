@@ -202,7 +202,7 @@
     # ------------------------------
     - name: Docker | Network | Create
       docker_network:
-        name: pihole_vnet
+        name: raspi_vnet
         driver: macvlan
         driver_options:
           parent: eth0

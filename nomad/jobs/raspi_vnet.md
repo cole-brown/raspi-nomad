@@ -1,4 +1,4 @@
-# Docker `macvlan` Network: `pihole_vnet`
+# Docker `macvlan` Network: `raspi_vnet`
 
 ## Docker Command for Creating:
 
@@ -14,7 +14,7 @@ sudo docker network create \
     --ip-range 192.168.50.0/28 \
     --gateway 192.168.50.1 \
     --opt parent=eth0 \
-    pihole_vnet
+    raspi_vnet
 ```
 
 ## Addresses in Use
@@ -38,7 +38,7 @@ sudo docker network create \
 | 192.168.50.15 |                 |            |
 
 
-# Jobs not on `pihole_vnet`
+# Jobs not on `raspi_vnet`
 
 
 ## network_mode = "host"
@@ -54,4 +54,4 @@ These both want port 1900 currently, so they can't run at the same time.
   - Should probably switch one or both to `bridge`?
   - Or just decide that Jellyfin wins over Plex (or vice versa).
 
-Switched Plex to `bridge` network mode, but then the Amazon Fire TV Stick couldn't access it. So I've moved both media servers to the `pihole_vnet` macvlan so that they can have their ports.
+Switched Plex to `bridge` network mode, but then the Amazon Fire TV Stick couldn't access it. So I've moved both media servers to the `raspi_vnet` macvlan so that they can have their ports.
