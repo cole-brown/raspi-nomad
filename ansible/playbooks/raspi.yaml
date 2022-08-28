@@ -210,20 +210,126 @@
         name: nomad
         groups: docker
         append: yes
+    - name: Nomad | Config Files | /etc/nomad.d
+      copy:
+        src: "{{ path_git_root }}/os/etc/nomad.d"
+        dest: "/etc/"
+        owner: "nomad"
+        group: "nomad"
+        mode: "u=rw,go=r"
+        directory_mode: "u=rwx,go=rx"
+      register: config_file_nomad
+      # notify:
+      #   - restart-service-nomad
+
+    - name: Nomad | Config Files | /etc/system.d/service/
+      copy:
+        src: "{{ path_git_root }}/os/etc/systemd/system/nomad.service"
+        dest: "/etc/systemd/system/nomad.service"
+        owner: "root"
+        group: "root"
+        mode: "u=rw,go=r"
+        directory_mode: "u=rwx,go=rx"
+      register: systemd_file_nomad
+      # notify:
+      #   - restart-service-nomad
+
+    - name: Nomad | Service | Reload `system.d` Daemon
+      systemd:
+        daemon_reload: yes
+      when:
+        - systemd_file_nomad.changed
+
+    - name: Nomad | Service | Enable
+      service:
+        name: nomad
+        # Does nothing if already enabled & running.
+        enabled: true
+        state: started
+      register: systemd_service_enabled_nomad
+
+    - name: Nomad | Service | Restart
+      service:
+        name: nomad
+        state: restarted
+      when:
+        - systemd_file_nomad.changed or config_file_nomad.changed
+        - not systemd_service_enabled_nomad.changed
+
+    - name: Nomad | Web UI | Check
+      uri:
+        # NOTE: `4646` is the default port for Nomad's web UI.
+        url: "http://{{ ansible_host }}:4646/ui/jobs"
+      when: run.config.nomad
 
 
     # --------------------------------------------------------------------------
-    # [Install] HashiCorp Stuff: Consul
+    # HashiCorp Stuff: Consul
     # --------------------------------------------------------------------------
 
+    # ------------------------------
+    # Install
+    # ------------------------------
     - name: Apt | Install | HashiCorp Consul
       apt:
         name: consul
         state: present # Just need something installed.
         # state: latest # Make sure latest version is installed.
 
-    # TODO: Rest of the Consul set-up / install?
-    #   - Or does that come later?
+    # ------------------------------
+    # Configure
+    # ------------------------------
+    - name: Consul | Config Files | /etc/consul.d
+      copy:
+        src: "{{ path_git_root }}/os/etc/consul.d"
+        dest: "/etc/"
+        owner: "consul"
+        group: "consul"
+        mode: "u=rw,go=r"
+        directory_mode: "u=rwx,go=rx"
+      register: config_file_consul
+      # notify:
+      #   - restart-service-consul
+
+    - name: Consul | Config Files | /etc/system.d/service/
+      copy:
+        src: "{{ path_git_root }}/os/etc/systemd/system/consul.service"
+        dest: "/etc/systemd/system/consul.service"
+        owner: "root"
+        group: "root"
+        mode: "u=rw,go=r"
+        directory_mode: "u=rwx,go=rx"
+      register: systemd_file_consul
+      # notify:
+      #   - restart-service-consul
+
+    - name: Consul | Service | Reload `system.d` Daemon
+      systemd:
+        daemon_reload: yes
+      when:
+        - systemd_file_consul.changed
+
+    - name: Consul | Service | Enable
+      service:
+        name: consul
+        # Does nothing if already enabled & running.
+        enabled: true
+        state: started
+      register: systemd_service_enabled_consul
+
+    - name: Consul | Service | Restart
+      service:
+        name: consul
+        state: restarted
+      when:
+        - systemd_file_consul.changed or config_file_consul.changed
+        - not systemd_service_enabled_consul.changed
+
+    - name: Consul | Web UI | Check
+      uri:
+        # NOTE: `8500` is the default port for Consul's web UI & `dc-2021-home` is our datacenter name in Consul/Nomad.
+        url: "http://{{ ansible_host }}:8500/ui/dc-2021-home/services"
+      when: run.config.consul
 
 
     # --------------------------------------------------------------------------
@@ -268,12 +374,23 @@
         autoremove: yes
 
 
-  # # ==============================================================================
-  # # Handlers
-  # # ==============================================================================
+  # ============================================================================
+  # Handlers
+  # ============================================================================
+  #
+  # NOTE: Currently not using these as I need to have the services running their
+  # latest config/etc ASAP. Maybe switching to roles and having Nomad/Consul
+  # installed in separate roles than the "install Nomad services" parts would
+  # make these handlers useful?
+  #
   # handlers:
-  #   # Restart `foo` service to pick up new config settings.
-  #   - name: restart-service-foo
+  #   # Restart `nomad` service to pick up new config settings.
+  #   - name: restart-service-nomad
   #     service:
-  #       name: foo
+  #       name: nomad
+  #       state: restarted
+  #   # Restart `consul` service to pick up new config settings.
+  #   - name: restart-service-consul
+  #     service:
+  #       name: consul
   #       state: restarted

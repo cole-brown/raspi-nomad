@@ -32,7 +32,7 @@ Group=consul
 # Since it runs as user ~consul~, we need to make sure its data dir in ~/opt~ exists and is owned by ~consul~.
 ExecStartPre=+mkdir -p /opt/consul
 ExecStartPre=+chown consul:consul /opt/consul
-ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d/config
+ExecStart=/usr/bin/consul agent -config-dir=/etc/consul.d/config
 ExecReload=/bin/kill -s HUP $MAINPID
 KillMode=process
 KillSignal=SIGTERM

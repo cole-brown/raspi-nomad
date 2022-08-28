@@ -46,9 +46,9 @@ SecureBits=keep-caps
 AmbientCapabilities=CAP_IPC_LOCK
 CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK
 NoNewPrivileges=yes
-ExecStart=/usr/local/bin/vault server -config /etc/vault.d/config
+ExecStart=/usr/bin/vault server -config /etc/vault.d/config
 ExecReload=/bin/kill --signal HUP $MAINPID
-ExecStop=/usr/local/bin/vault step-down
+ExecStop=/usr/bin/vault step-down
 KillMode=process
 KillSignal=SIGINT
 Restart=on-failure
@@ -76,7 +76,7 @@ LimitMEMLOCK=infinity
 #   Like this?
 #     # "-" means "Don't error if file does not exist."
 #     EnvironmentFile=-/etc/sysconfig/vault
-#     ExecStartPost=/bin/bash -c "for key in $KEYS; do /usr/local/sbin/vault unseal $CERT $key; done"
+#     ExecStartPost=/bin/bash -c "for key in $KEYS; do /usr/bin/vault unseal $CERT $key; done"
 #
 #   Or this?
 #     Environment="MY_KEY=my_favourite_value_today"
