@@ -158,7 +158,7 @@ system_info:
    plain_text_passwd: 'I do not like raspberries.'
    home: /home/main
    shell: /bin/bash
-   lock_passwd: True
+   lock_passwd: false
 
 
 #-------------------------------------------------------------------------------
