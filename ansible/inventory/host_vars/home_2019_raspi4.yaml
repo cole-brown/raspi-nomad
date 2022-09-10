@@ -11,8 +11,70 @@ nfs:
       source: //192.168.50.20/media
       directory: /mnt/nfs/media
       options: "uid=main,gid=main,user=media-share,password=6W>^%K9@C-.sfVs!o7Hyzh6*8bHMm6,iocharset=utf8"
-    # - type: cifs
-    #   # source: //home-2017-desk.local/bree
-    #   source: //192.168.50.20/bree
-    #   directory: /mnt/nfs/bree
-    #   options: "ro,uid=main,gid=main,user=media-share,password=6W>^%K9@C-.sfVs!o7Hyzh6*8bHMm6,iocharset=utf8"
+    - type: cifs
+      # source: //home-2017-desk.local/bree
+      source: //192.168.50.20/bree
+      directory: /mnt/nfs/bree
+      options: "ro,uid=main,gid=main,user=media-share,password=6W>^%K9@C-.sfVs!o7Hyzh6*8bHMm6,iocharset=utf8"
+
+nomad:
+  root: /srv/nomad
+  data: /srv/nomad/data
+  host_volumes:
+    - name: files-temp
+      directory: /tmp
+      read_only: false
+      # Should already exist. Just make sure it does.
+      create: false
+    - name: files-media
+      directory: /mnt/nfs/media
+      read_only: false
+      # Should already exist. Just make sure it does.
+      create: false
+    - name: files-bree
+      directory: /mnt/nfs/bree
+      read_only: false
+      # Should already exist. Just make sure it does.
+      create: false
+    - name: pihole-data
+      directory: /srv/nomad/pihole/etc/pihole
+      read_only: false
+      create: true
+      owner: root
+      group: root
+    - name: pihole-dnsmasq
+      directory: /srv/nomad/pihole/etc/dnsmasq.d
+      read_only: false
+      create: true
+      owner: root
+      group: root
+    - name: plex-config
+      directory: /srv/nomad/plex/config
+      read_only: false
+      create: true
+      owner: nomad
+      group: nomad
+    - name: jackett-config
+      directory: /srv/nomad/jackett/config
+      read_only: false
+      create: true
+      owner: nomad
+      group: nomad
+    - name: qbittorrent-config
+      directory: /srv/nomad/qbittorrent/config
+      read_only: false
+      create: true
+      owner: nomad
+      group: nomad
+    # - name: tailscale-data
+    #   directory: /srv/nomad/tailscale/data
+    #   read_only: false
+    #   create: true
+    #   owner: nomad
+    #   group: nomad
+    # - name: jellyfin-config
+    #   directory: /srv/nomad/jellyfin/config
+    #   read_only: false
+    #   create: true
+    #   owner: jellyfin
+    #   group: jellyfin

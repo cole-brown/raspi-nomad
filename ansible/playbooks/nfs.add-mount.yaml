@@ -24,4 +24,3 @@
     opts: "{{ mount_item.options }}"
     # passno: 0
     # dump: 0
-  notify:

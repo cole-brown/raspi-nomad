@@ -197,6 +197,15 @@
         # state: latest # Make sure latest version is installed.
       when: run.install.docker
 
+    # Required for `community.general.nomad_job` Ansible module.
+    # https://docs.ansible.com/ansible/latest/collections/community/general/nomad_job_module.html
+    - name: PIP | Install | Nomad SDK for Python
+      pip:
+        name: python-nomad
+        state: present # Just need something installed.
+        # state: latest # Make sure latest version is installed.
+      when: run.install.nomad
+
     # ------------------------------
     # Config
     # ------------------------------
@@ -277,37 +286,6 @@
       # notify:
       #   - restart-service-nomad
 
-    - name: Nomad | Service | Reload `system.d` Daemon
-      systemd:
-        daemon_reload: yes
-      when:
-        - systemd_file_nomad.changed
-        - run.config.nomad
-
-    - name: Nomad | Service | Enable
-      service:
-        name: nomad
-        # Does nothing if already enabled & running.
-        enabled: true
-        state: started
-      register: systemd_service_enabled_nomad
-      when: run.config.nomad
-
-    - name: Nomad | Service | Restart
-      service:
-        name: nomad
-        state: restarted
-      when:
-        - systemd_file_nomad.changed or config_file_nomad.changed
-        - not systemd_service_enabled_nomad.changed
-        - run.config.nomad
-
-    - name: Nomad | Web UI | Check
-      uri:
-        # NOTE: `4646` is the default port for Nomad's web UI.
-        url: "http://{{ ansible_host }}:4646/ui/jobs"
-      when: run.config.nomad
-
 
     # --------------------------------------------------------------------------
     # HashiCorp Stuff: Consul
@@ -352,38 +330,9 @@
       # notify:
       #   - restart-service-consul
 
-    - name: Consul | Service | Reload `system.d` Daemon
-      systemd:
-        daemon_reload: yes
-      when:
-        - systemd_file_consul.changed
-        - run.config.consul
 
-    - name: Consul | Service | Enable
-      service:
-        name: consul
-        # Does nothing if already enabled & running.
-        enabled: true
-        state: started
-      register: systemd_service_enabled_consul
-      when: run.config.consul
-
-    - name: Consul | Service | Restart
-      service:
-        name: consul
-        state: restarted
-      when:
-        - systemd_file_consul.changed or config_file_consul.changed
-        - not systemd_service_enabled_consul.changed
-        - run.config.consul
-
-    - name: Consul | Web UI | Check
-      uri:
-        # NOTE: `8500` is the default port for Consul's web UI & `dc-2021-home` is our datacenter name in Consul/Nomad.
-        url: "http://{{ ansible_host }}:8500/ui/dc-2021-home/services"
-      when: run.config.consul
     # --------------------------------------------------------------------------
-    # Network File Share
+    # Network File Shares
     # --------------------------------------------------------------------------
 
     # ------------------------------
@@ -413,6 +362,118 @@
       loop_control:
         loop_var: mount_item
       when: run.config.cifs
+
+
+    # --------------------------------------------------------------------------
+    # Nomad Volume Directories
+    # --------------------------------------------------------------------------
+
+    - name: Nomad | Host Volumes
+      include_tasks: "nomad.host-volume.yaml"
+      with_items: "{{ nomad.host_volumes }}"
+      loop_control:
+        loop_var: host_volume
+      when: run.config.nomad
+
+
+    # --------------------------------------------------------------------------
+    # Nomad & Consul: Final Configuration
+    # --------------------------------------------------------------------------
+    # Nomad's service file has Consul as a `Wants` & `After` directive, so do
+    # Consul first.
+
+    # ------------------------------
+    # System.D Daemon
+    # ------------------------------
+    - name: Services | Reload `system.d` Daemon for service file update
+      systemd:
+        daemon_reload: yes
+      when: (systemd_file_consul.changed and run.config.consul) or (systemd_file_nomad.changed and run.config.nomad)
+
+    # ------------------------------
+    # Consul Final Config
+    # ------------------------------
+    - name: Consul | Service | Enable
+      service:
+        name: consul
+        # Does nothing if already enabled & running.
+        enabled: true
+        state: started
+      register: systemd_service_enabled_consul
+      when: run.config.consul
+
+    - name: Consul | Service | Restart
+      service:
+        name: consul
+        state: restarted
+      when:
+        - systemd_file_consul.changed or config_file_consul.changed
+        - not systemd_service_enabled_consul.changed
+        - run.config.consul
+
+    # - name: Consul | Web UI | Check
+    #   uri:
+    #     # NOTE: `8500` is the default port for Consul's web UI & `dc-2021-home` is our datacenter name in Consul/Nomad.
+    #     url: "http://{{ ansible_host }}:8500/ui/dc-2021-home/services"
+    #   when: run.config.consul
+
+    - name: Consul | Web UI | Check
+      wait_for:
+        host: 127.0.0.1
+        # NOTE: `8500` is the default port for Consul's web UI.
+        port: 8500
+      when: run.config.consul
+
+    # ------------------------------
+    # Nomad Final Config
+    # ------------------------------
+    - name: Nomad | Service | Enable
+      service:
+        name: nomad
+        # Does nothing if already enabled & running.
+        enabled: true
+        state: started
+      register: systemd_service_enabled_nomad
+      when: run.config.nomad
+
+    - name: Nomad | Service | Restart
+      service:
+        name: nomad
+        state: restarted
+      when:
+        - systemd_file_nomad.changed or config_file_nomad.changed
+        - not systemd_service_enabled_nomad.changed
+        - run.config.nomad
+
+    # - name: Nomad | Web UI | Check
+    #   uri:
+    #     # NOTE: `4646` is the default port for Nomad's web UI.
+    #     url: "http://{{ ansible_host }}:4646/ui/jobs"
+    #   when: run.config.nomad
+
+    - name: Nomad | Web UI | Check
+      wait_for:
+        host: 127.0.0.1
+        # NOTE: `4646` is the default port for Nomad's web UI.
+        port: 4646
+      when: run.config.nomad
+
+
+    # --------------------------------------------------------------------------
+    # Nomad Jobs:
+    # --------------------------------------------------------------------------
+
+    # ------------------------------
+    # Pi-Hole
+    # ------------------------------
+
+    - name: Nomad Job | Pi-Hole
+      community.general.nomad_job:
+        host: localhost # This is run on the remote host `home_2019_raspi4`, so "localhost" == Ansible host == "the target"?
+        content: "{{ lookup('ansible.builtin.file', '{{ path_git_root }}/nomad/jobs/pihole.nomad') }}"
+        state: present
+        use_ssl: no
+      when: run.nomad.pihole
 
 
     # --------------------------------------------------------------------------

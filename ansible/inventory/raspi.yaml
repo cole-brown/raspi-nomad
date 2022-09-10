@@ -1,17 +1,42 @@
 ---
 
+
+
 dc_2021_home:
   hosts:
     home_2019_raspi4:
       ansible_become: true
       ansible_host: "192.168.50.16"
       ansible_user: "main"
+      # ------------------------------
+      # NOTE: Any of these settings could be overridden by
+      # "./host_vars/home_2019_raspi4.yaml"
+      # ------------------------------
       os:
         user: main
         group: main
       nomad:
         root: /srv/nomad
         data: /srv/nomad/data
+        # Each host_volume dict must have:
+        #   - name: string
+        #   - path: string
+        #   - read_only: bool
+        host_volumes: []
+        # `host_volumes` examples:
+        #   - name: files-temp
+        #     path: /tmp
+        #     read_only: false
+        #     # Should already exist. Just make sure it does.
+        #     create: false
+        #   - name: pihole-dnsmasq
+        #     path: /srv/nomad/pihole/etc/dnsmasq.d
+        #     read_only: false
+        #     # Create if it doesn't exist.
+        #     create: true
+        #     owner: root
+        #     group: root
+
       # Speed up playbook testing...
       run:
         install:
@@ -28,4 +53,4 @@ dc_2021_home:
           consul: no
           cifs: no
         nomad:
-          pihole: no
+          pihole: yes
