@@ -34,6 +34,11 @@ client {
     retry_interval = "15s"
   }
 
+  #-----------------------------------------------------------------------------
+  # Volumes BEGIN
+  #-----------------------------------------------------------------------------
+  # Make sure to read the NOTE, at "Volumes END".
+
   #------------------------------
   # Volumes, Data: General Files
   #------------------------------
@@ -54,15 +59,6 @@ client {
   host_volume "files-bree" {
     path      = "/mnt/nfs/bree"
     read_only = true
-  }
-
-  #------------------------------
-  # Volumes, Config: Tailscale VPN
-  #------------------------------
-
-  host_volume "tailscale-data" {
-    path      = "/srv/nomad/tailscale/data"
-    read_only = false
   }
 
   #------------------------------
@@ -89,15 +85,6 @@ client {
   }
 
   #------------------------------
-  # Volumes, Config (Media Server): Jellyfin
-  #------------------------------
-
-  host_volume "jellyfin-config" {
-    path      = "/srv/nomad/jellyfin/config"
-    read_only = false
-  }
-
-  #------------------------------
   # Volumes, Config (Torrent): Jackett
   #------------------------------
 
@@ -114,6 +101,33 @@ client {
     path      = "/srv/nomad/qbittorrent/config"
     read_only = false
   }
+
+  # #------------------------------
+  # # Volumes, Config: Tailscale VPN
+  # #------------------------------
+  #
+  # host_volume "tailscale-data" {
+  #   path      = "/srv/nomad/tailscale/data"
+  #   read_only = false
+  # }
+
+  # #------------------------------
+  # # Volumes, Config (Media Server): Jellyfin
+  # #------------------------------
+  #
+  # host_volume "jellyfin-config" {
+  #   path      = "/srv/nomad/jellyfin/config"
+  #   read_only = false
+  # }
+
+  #-----------------------------------------------------------------------------
+  # Volumes END
+  #
+  # NOTE: Make sure "$GIT_ROOT/ansible/inventory/host_vars/home_2019_raspi4.yaml"
+  # has an entry for each of these under `nomad.host_volumes`.
+  #
+  # Or update Ansible to generate these from that...
+  #-----------------------------------------------------------------------------
 }
 
 # Configure Docker.
