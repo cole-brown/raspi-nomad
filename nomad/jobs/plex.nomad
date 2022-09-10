@@ -151,18 +151,8 @@ job "plex" {
         #------------------------------
         # NOTE: Nomad can't manage a macvlan network. It forwards host ports if you do a network
         # stanza with ~to = "<port-num>"~...
-        network_mode = "pihole_vnet"
-        # Not needed if doing a /32 CIDR block Docker network.
+        network_mode = "raspi_vnet"
         ipv4_address = "192.168.50.13"
-
-        # # Be a default Docker container with dynamic ports from host mapped into container.
-        # #   - Use ~to = "<port-num>"~ in the ~network~ stanza.
-        # network_mode = "bridge"
-
-        # # Be the host, for networking, basically.
-        # #   - Use ~static = "<port-num>"~ in the ~network~ stanza.
-        # # Alternatively, "macvlan" makes a vlan for the container so you can be your own man but still not remap ports.
-        # network_mode = "host"
 
         #------------------------------
         # Misc.

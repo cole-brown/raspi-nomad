@@ -155,13 +155,8 @@ job "jellyfin" {
         #------------------------------
         # NOTE: Nomad can't manage a macvlan network. It forwards host ports if you do a network
         # stanza with ~to = "<port-num>"~...
-        network_mode = "pihole_vnet"
-        # Not needed if doing a /32 CIDR block Docker network.
+        network_mode = "raspi_vnet"
         ipv4_address = "192.168.50.12"
-
-        # # Be the host, for networking, basically.
-        # # Alternatively, "macvlan" makes a vlan for the container so you can be your own man but still not remap ports.
-        # network_mode = "host"
 
         #------------------------------
         # Misc.

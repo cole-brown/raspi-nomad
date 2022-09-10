@@ -167,8 +167,7 @@ job "handbrake" {
         #------------------------------
         # NOTE: Nomad can't manage a macvlan network. It forwards host ports if you do a network
         # stanza with ~to = "<port-num>"~...
-        network_mode = "pihole_vnet"
-        # Not needed if doing a /32 CIDR block Docker network.
+        network_mode = "raspi_vnet"
         ipv4_address = "192.168.50.8"
       }
 

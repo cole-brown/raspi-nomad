@@ -75,25 +75,9 @@ job "cloudflared" {
         #------------------------------
         # Docker Network: macvlan
         #------------------------------
-        # Docker command for:
-        #   macvlan 192.168.50.0/28:
-        #   192.168.50.0 - 192.168.50.15
-        #---
-        # sudo docker network create \
-        #     --driver macvlan \
-        #     --subnet 192.168.50.0/24  \
-        #     --ip-range 192.168.50.0/28 \
-        #     --gateway 192.168.50.254 \
-        #     --opt parent=eth0 \
-        #     pihole_vnet
-
-        #---
-        # Nomad settings:
-        #---
         # NOTE: Nomad can't manage a macvlan network. It forwards host ports if you do a network
         # stanza with ~to = "<port-num>"~...
-        network_mode = "pihole_vnet"
-        # Not needed if doing a /32 CIDR block Docker network.
+        network_mode = "raspi_vnet"
         ipv4_address = "192.168.50.4"
 
         # Ports:
