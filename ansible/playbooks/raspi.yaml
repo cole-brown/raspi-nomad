@@ -141,7 +141,7 @@
     - name: Apt | Update Cache
       apt:
         update_cache: true
-        cache_valid_time: 1440 # seconds == 4 hour
+        cache_valid_time: 14400 # seconds == 4 hour
       # Don't care if this says the cache was old - only care if that causes
       # other steps to do something. So the status of this isn't as important -
       # those other steps will say if they changed.
