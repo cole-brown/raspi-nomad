@@ -75,7 +75,12 @@ client {
     read_only = false
   }
 
-  #------------------------------
+   host_volume "pihole-backups" {
+    path      = "/srv/nomad/pihole/backups"
+    read_only = false
+  }
+
+ #------------------------------
   # Volumes, Config (Media Server): Plex Media Server
   #------------------------------
 

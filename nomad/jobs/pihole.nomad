@@ -67,6 +67,12 @@ job "pihole" {
       read_only = false
     }
 
+    volume "pihole-backups" {
+      type      = "host"
+      source    = "pihole-backups"
+      read_only = false
+    }
+
     #---------------------------------------------------------------------------
     # Task: Pi-Hole Docker Container
     #---------------------------------------------------------------------------
@@ -92,6 +98,18 @@ job "pihole" {
       volume_mount {
         volume      = "pihole-dnsmasq"
         destination = "/etc/dnsmasq.d"
+        read_only   = false
+      }
+
+      # For Pi-Hole's backup command:
+      #   ```
+      #   sudo docker exec -it $(sudo docker ps --filter ancestor='pihole/pihole' --format '{{ .Names }}') bash
+      #   cd $this_volume
+      #   pihole admin teleporter [filename.tar.gz]
+      #   ```
+      volume_mount {
+        volume      = "pihole-backups"
+        destination = "/var/local/pihole/backups"
         read_only   = false
       }
 
@@ -178,6 +196,13 @@ job "pihole" {
       env {
         TZ           = "US/Pacific"
         WEBPASSWORD  = "I do not like raspberries."
+
+        # NOTE: The existence of this environment variable assumes this as the
+        # sole management of upstream DNS. Upstream DNS added via the web
+        # interface will be overwritten on container restart/recreation.
+        PIHOLE_DNS_ = "149.112.112.11; 8.8.8.8" # Quad9 (malware filter, ECS, DNSSEC); Google (ECS, DNSSEC)
+
+        # TODO-IPv6: DHCP_IPv6 = "true"
 
         # Rest of the set-up is in the persistent files.
 

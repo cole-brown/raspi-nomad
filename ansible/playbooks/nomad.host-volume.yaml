@@ -10,20 +10,9 @@
   register: host_volume_dir
 
 # ------------------------------
-# Don't create?
+# Create if necessary?
 # ------------------------------
-# Just fail if we shouldn't create the directory and it doesn't exist.
-- name: Nomad Host Volume | {{ host_volume.directory }} | Assert Exists
-  fail:
-    msg: "Nomad Host Volume '{{ host_volume.directory }}' does not exist!"
-  when:
-    - not host_volume.create
-    - not host_volume_dir.stat.exists
-
-# ------------------------------
-# Create if necessary.
-# ------------------------------
-- name: NFS | Mount Directory | {{ host_volume.directory }} | Mount
+- name: Nomad Host Volume | {{ host_volume.directory }} | Create Dir
   file:
     state: directory
     path: "{{ host_volume.directory }}"
@@ -34,3 +23,15 @@
     # recurse: no
   when:
     - host_volume.create
+
+# ------------------------------
+# Don't create?
+# ------------------------------
+# Just fail if we shouldn't create the directory and it doesn't exist.
+- name: Nomad Host Volume | {{ host_volume.directory }} | Fail if Uncreatable Dir DNE
+  fail:
+    msg: "Nomad Host Volume '{{ host_volume.directory }}' does not exist!"
+  when:
+    - not host_volume.create
+    - not host_volume_dir.stat.exists
+

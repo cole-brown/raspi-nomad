@@ -417,7 +417,7 @@
     #     url: "http://{{ ansible_host }}:8500/ui/dc-2021-home/services"
     #   when: run.config.consul
 
-    - name: Consul | Web UI | Check
+    - name: Consul | Service | Check Web UI
       wait_for:
         host: 127.0.0.1
         # NOTE: `8500` is the default port for Consul's web UI.
@@ -451,7 +451,7 @@
     #     url: "http://{{ ansible_host }}:4646/ui/jobs"
     #   when: run.config.nomad
 
-    - name: Nomad | Web UI | Check
+    - name: Nomad | Service | Check Web UI
       wait_for:
         host: 127.0.0.1
         # NOTE: `4646` is the default port for Nomad's web UI.
@@ -467,14 +467,190 @@
     # Pi-Hole
     # ------------------------------
 
-    - name: Nomad Job | Pi-Hole
+    - name: Nomad Job | Pi-Hole | Run Job
       community.general.nomad_job:
         host: localhost # This is run on the remote host `home_2019_raspi4`, so "localhost" == Ansible host == "the target"?
         content: "{{ lookup('ansible.builtin.file', '{{ path_git_root }}/nomad/jobs/pihole.nomad') }}"
         state: present
         use_ssl: no
       when: run.nomad.pihole
+      register: nomad_job_pihole
 
+    # Wait for it to be running... Can't get into the docker network from the
+    # Raspberry Pi, so delegate to here.
+    - name: Nomad Job | Pi-Hole | Check Web UI
+      wait_for:
+        host: 192.168.50.2
+        port: 80
+      delegate_to: localhost
+      when:
+        - run.nomad.pihole
+        - nomad_job_pihole.changed
+
+    # What is its Docker container called?
+    - name: Nomad Job | Pi-Hole | Find Docker Container
+      # Ansible and Docker both use Jinja2, so... Need to escape the Jinja2
+      # double curlies with Jinja2 double curlies so that Ansible doesn't eat
+      # the double curlies before Docker gets the double curlies.
+      command: docker ps --filter ancestor='pihole/pihole' --format "{{ '{{' }} .Names {{ '}}' }}"
+      when: run.nomad.pihole
+      register: docker_container_pihole
+      changed_when: false
+
+    # Save whitelists before & diff after to check for changes.
+    - name: Nomad Job | Pi-Hole | DNS | Get Whitelisted Domains (Before)
+      community.docker.docker_container_exec:
+        container: "{{ docker_container_pihole.stdout }}"
+        argv:
+          - pihole
+          - whitelist
+          - --list
+      when:
+        - run.nomad.pihole
+        - docker_container_pihole.stdout
+      register: pihole_whitelisted_domains_pre
+      changed_when: false
+
+    - name: Nomad Job | Pi-Hole | DNS | Get Whitelisted Regexes (Before)
+      community.docker.docker_container_exec:
+        container: "{{ docker_container_pihole.stdout }}"
+        argv:
+          - pihole
+          - --white-regex
+          - --list
+      when:
+        - run.nomad.pihole
+        - docker_container_pihole.stdout
+      register: pihole_whitelisted_regexes_pre
+      changed_when: false
+
+    # And now we should be able to run commands on the container whose name is
+    # in `docker_container_pihole.stdout`.
+    - name: Nomad Job | Pi-Hole | DNS | Whitelist Domains
+      community.docker.docker_container_exec:
+        container: "{{ docker_container_pihole.stdout }}"
+        # Use `command` instead of `argv` so that space-separated domain list
+        # becomes separate args properly.
+        command: "pihole whitelist --noreload {{ whitelist_domains }}"
+      with_items: "{{ pihole.whitelist.domains }}"
+      loop_control:
+        loop_var: whitelist_domains
+      when:
+        - run.nomad.pihole
+        - docker_container_pihole.stdout
+      register: pihole_whitelist_domains
+      changed_when: false
+
+    - name: Nomad Job | Pi-Hole | DNS | Whitelist Regexes
+      community.docker.docker_container_exec:
+        container: "{{ docker_container_pihole.stdout }}"
+        argv:
+          - pihole
+          - --white-regex
+          - --noreload
+          - "{{ whitelist_regex }}"
+      with_items: "{{ pihole.whitelist.regexes }}"
+      loop_control:
+        loop_var: whitelist_regex
+      when:
+        - run.nomad.pihole
+        - docker_container_pihole.stdout
+      register: pihole_whitelist_domains
+      changed_when: false
+
+    # Save whitelists before & diff after to check for changes.
+    - name: Nomad Job | Pi-Hole | DNS | Get Whitelisted Domains (After)
+      community.docker.docker_container_exec:
+        container: "{{ docker_container_pihole.stdout }}"
+        argv:
+          - pihole
+          - whitelist
+          - --list
+      when:
+        - run.nomad.pihole
+        - docker_container_pihole.stdout
+      register: pihole_whitelisted_domains_post
+      changed_when: false
+      # TODO: Does this show all the whitelisted domains? I only see 45, which seems like too few...
+
+    - name: Nomad Job | Pi-Hole | DNS | Get Whitelisted Regexes (After)
+      community.docker.docker_container_exec:
+        container: "{{ docker_container_pihole.stdout }}"
+        argv:
+          - pihole
+          - --white-regex
+          - --list
+      when:
+        - run.nomad.pihole
+        - docker_container_pihole.stdout
+      register: pihole_whitelisted_regexes_post
+      changed_when: false
+
+    # Reload the Pi-Hole DNS Server now that we're done with the changes, if the
+    # whitelisting actually changed anything...
+    - name: Nomad Job | Pi-Hole | DNS | Whitelists Changed?
+      set_fact:
+        pihole_whitelist_domains_changed: "{{ pihole_whitelisted_domains_pre != pihole_whitelisted_domains_post }}"
+        pihole_whitelist_regexes_changed: "{{ pihole_whitelisted_regexes_pre != pihole_whitelisted_regexes_post }}"
+      when:
+        - run.nomad.pihole
+        - docker_container_pihole.stdout
+      # Try to make this step's status reflect its name?
+      changed_when: pihole_whitelist_domains_changed or pihole_whitelist_regexes_changed
+
+    - name: Nomad Job | Pi-Hole | DNS | Reload DNS Lists
+      community.docker.docker_container_exec:
+        container: "{{ docker_container_pihole.stdout }}"
+        argv:
+          - pihole
+          - restartdns
+          # Reload the DNS lists without flushing the cache or restarting the DNS server.
+          - reload-lists
+      when:
+        - run.nomad.pihole
+        - pihole_whitelist_domains_changed or pihole_whitelist_regexes_changed
+
+    # To check your machine's DNS Server:
+    #   ```
+    #   systemd-resolve --status
+    #   ```
+    # But it's difficult to use that in the playbook since it won't immediately
+    # change...
+    # - name: Nomad Job | Pi-Hole | Using Pi-Hole for DNS?
+    #   command:
+    #     cmd: "systemd-resolve --status | grep 'DNS Server'"
+
+    - name: Nomad Job | Pi-Hole | Backup | Make Filename
+      set_fact:
+        filename_pihole_backup: "pihole-backup.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
+        path_docker_pihole_backup: "/var/local/pihole/backups"
+        path_host_pihole_backup: "/srv/nomad/pihole/backups"
+      changed_when: false
+
+    - name: Nomad Job | Pi-Hole | Backup | Ensure '{{ path_host_pihole_backup }}' Exists
+      file:
+        state: directory
+        path: "{{ path_host_pihole_backup }}"
+        owner: root
+        group: root
+        recurse: no
+
+    - name: Nomad Job | Pi-Hole | Backup | Make
+      community.docker.docker_container_exec:
+        container: "{{ docker_container_pihole.stdout }}"
+        argv:
+          - pihole
+          - admin
+          - teleporter
+          - "{{ path_docker_pihole_backup }}/{{ filename_pihole_backup }}"
+      when: run.nomad.pihole
+
+    - name: Nomad Job | Pi-Hole | Backup | Fetch
+      fetch:
+        src: "{{ path_host_pihole_backup }}/{{ filename_pihole_backup }}"
+        # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
+        dest: "{{ path_git_root }}/apps/pihole/backups"
+      when: run.nomad.pihole
 
     # --------------------------------------------------------------------------
     # [Clean-Up]
