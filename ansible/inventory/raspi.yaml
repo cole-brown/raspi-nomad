@@ -54,4 +54,5 @@ dc_2021_home:
           cifs: no
         nomad:
           pihole: no
-          jackett: yes
+          jackett: no
+          qbittorrent: yes

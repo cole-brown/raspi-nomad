@@ -83,12 +83,11 @@ job "qbittorrent" {
       # Use "UID:GID" if the volumes are owned by a non-root user/group.
       #   ~sudo groupadd --gid 2001 qbittorrent~
       #   ~sudo useradd --no-create-home --uid 2001 --gid 2001 --no-user-group --shell /usr/sbin/nologin qbittorrent~
-      # user   = "2001:2001" # "qbittorrent:qbittorrent"
+      # user = "2001:2001" # "qbittorrent:qbittorrent"
       #
-      # Run as user:group `main:main`.
-      # Does `main` work to fix permissions? qBittorrent is saving its own files with
-      # uid:gid of 911:911, which doesn't exist on the Docker host.
-      # user   = "1000:1000" # "main:main"
+      # Don't set this user/group. Only use PUID/PGID in `env`. If this is set,
+      # you can't connect to the qBittorrent web UI.
+      # user = "1000:1000" # "main:main"
 
       # These are Nomad Docker Bind Mounts.
       # Stored wherever the =host_volume= stanza in the Nomad Client config says they should be.
@@ -135,9 +134,14 @@ job "qbittorrent" {
         TZ         = "US/Pacific"
         WEBUI_PORT = 80
 
-        # Run as user:group `main:main`.
-        # Does `main` work to fix permissions? qBittorrent is saving its own files with
-        # uid:gid of 911:911, which doesn't exist on the Docker host.
+        # Run as user:group `main:main` in order to fix file permission errors on the NFS mounts.
+        # The torrents would just be: Status Errored
+        # The logs would say:
+        #   (W) 2022-02-20T12:12:36 - File error alert.
+        #     Torrent: "Fedora Silverblue ISOs".
+        #     File: "/data/download/Fedora Silverblue ISOs/Fedora-Silverblue-ostree-x86_64-35-1.2.iso.!qB".
+        #     Reason: Fedora Silverblue ISOs mkdir (/data/download/Fedora Silverblue ISOs/Fedora-Silverblue-ostree-x86_64-35-1.2.iso.!qB)
+        #     error: Permission denied
         PUID       = 1000
         PGID       = 1000
       }
