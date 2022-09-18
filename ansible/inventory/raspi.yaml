@@ -53,4 +53,5 @@ dc_2021_home:
           consul: no
           cifs: no
         nomad:
-          pihole: yes
+          pihole: no
+          jackett: yes

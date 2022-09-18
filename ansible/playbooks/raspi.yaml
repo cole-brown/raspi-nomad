@@ -460,12 +460,8 @@
 
 
     # --------------------------------------------------------------------------
-    # Nomad Jobs:
+    # Nomad Job: Pi-Hole
     # --------------------------------------------------------------------------
-
-    # ------------------------------
-    # Pi-Hole
-    # ------------------------------
 
     - name: Nomad Job | Pi-Hole | Run Job
       community.general.nomad_job:
@@ -625,6 +621,7 @@
         filename_pihole_backup: "pihole-backup.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
         path_docker_pihole_backup: "/var/local/pihole/backups"
         path_host_pihole_backup: "/srv/nomad/pihole/backups"
+      when: run.nomad.pihole
       changed_when: false
 
     - name: Nomad Job | Pi-Hole | Backup | Ensure '{{ path_host_pihole_backup }}' Exists
@@ -634,6 +631,7 @@
         owner: root
         group: root
         recurse: no
+      when: run.nomad.pihole
 
     - name: Nomad Job | Pi-Hole | Backup | Make
       community.docker.docker_container_exec:
@@ -651,6 +649,64 @@
         # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
         dest: "{{ path_git_root }}/apps/pihole/backups"
       when: run.nomad.pihole
+
+
+    # --------------------------------------------------------------------------
+    # Nomad Job: Jackett
+    # --------------------------------------------------------------------------
+
+    - name: Nomad Job | Jackett | Run Job
+      community.general.nomad_job:
+        host: localhost # This is run on the remote host `home_2019_raspi4`, so "localhost" == Ansible host == "the target"?
+        content: "{{ lookup('ansible.builtin.file', '{{ path_git_root }}/nomad/jobs/jackett.nomad') }}"
+        state: present
+        use_ssl: no
+      when: run.nomad.jackett
+      register: nomad_job_jackett
+
+    # Wait for it to be running... Can't get into the docker network from the
+    # Raspberry Pi, so delegate to here.
+    - name: Nomad Job | Jackett | Check Web UI
+      wait_for:
+        host: 192.168.50.6
+        port: 9117
+      delegate_to: localhost
+      when:
+        - run.nomad.jackett
+        - nomad_job_jackett.changed
+
+    - name: Nomad Job | Jackett | Backup | Make Filename
+      set_fact:
+        filename_jackett_backup: "jackett-backup.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
+        path_host_jackett_backup_dest: "/srv/nomad/jackett/backups"
+        path_host_jackett_backup_src: "/srv/nomad/jackett/config/Jackett"
+      when: run.nomad.jackett
+      changed_when: false
+
+    - name: Nomad Job | Jackett | Backup | Ensure '{{ path_host_jackett_backup_dest }}' Exists
+      file:
+        state: directory
+        path: "{{ path_host_jackett_backup_dest }}"
+        owner: root
+        group: root
+        recurse: no
+      when: run.nomad.jackett
+
+    - name: Nomad Job | Jackett | Backup | Make
+      community.general.archive:
+        path: "{{ path_host_jackett_backup_src }}"
+        exclusion_patterns:
+          - "*log.txt"
+        dest: "{{ path_host_jackett_backup_dest }}/{{ filename_jackett_backup }}"
+      when: run.nomad.jackett
+
+    - name: Nomad Job | Jackett | Backup | Fetch
+      fetch:
+        src: "{{ path_host_jackett_backup_dest }}/{{ filename_jackett_backup }}"
+        # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
+        dest: "{{ path_git_root }}/apps/jackett/backups"
+      when: run.nomad.jackett
+
 
     # --------------------------------------------------------------------------
     # [Clean-Up]
