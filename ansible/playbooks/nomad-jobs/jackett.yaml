@@ -1,0 +1,62 @@
+# ------------------------------------------------------------------------------
+# Nomad Job: Jackett
+# ------------------------------------------------------------------------------
+#
+# NOTE: `run.nomad.jackett` is assumed to be true! Check when calling this.
+#
+# Example:
+#   - name: Nomad Job | Jackett
+#     include_tasks: "nomad-jobs/jackett.yaml"
+#     when: run.nomad.jackett
+
+- name: Nomad Job | Jackett | Run Job
+  community.general.nomad_job:
+    host: localhost # This is run on the remote host `home_2019_raspi4`, so "localhost" == Ansible host == "the target"?
+    content: "{{ lookup('ansible.builtin.file', '{{ path_git_root }}/nomad/jobs/jackett.nomad') }}"
+    state: present
+    use_ssl: no
+  register: nomad_job_jackett
+
+# Wait for it to be running... Can't get into the docker network from the
+# Raspberry Pi, so delegate to here.
+- name: Nomad Job | Jackett | Check Web UI
+  wait_for:
+    host: 192.168.50.6
+    port: 9117
+  delegate_to: localhost
+  when: nomad_job_jackett.changed
+
+- name: Nomad Job | Jackett | Backup | Make Filename
+  set_fact:
+    filename_jackett_backup_iso8601: "jackett-backup.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
+    filename_jackett_backup_date: "jackett-backup.{{ ansible_date_time.date }}.tar.gz"
+    path_host_jackett_backup_dest: "/srv/nomad/jackett/backups"
+    path_host_jackett_backup_src: "/srv/nomad/jackett/config/Jackett"
+  changed_when: false
+
+- name: Nomad Job | Jackett | Backup | Ensure '{{ path_host_jackett_backup_dest }}' Exists
+  file:
+    state: directory
+    path: "{{ path_host_jackett_backup_dest }}"
+    owner: root
+    group: root
+    recurse: no
+
+- name: Nomad Job | Jackett | Backup | Make
+  community.general.archive:
+    path: "{{ path_host_jackett_backup_src }}"
+    exclusion_patterns:
+      - "*log.txt"
+    dest: "{{ path_host_jackett_backup_dest }}/{{ filename_jackett_backup_iso8601 }}"
+
+- name: Nomad Job | Jackett | Backup | Copy/Rename
+  copy:
+    remote_src: true
+    src: "{{ path_host_jackett_backup_dest }}/{{ filename_jackett_backup_iso8601 }}"
+    dest: "{{ path_host_jackett_backup_dest }}/{{ filename_jackett_backup_date }}"
+
+- name: Nomad Job | Jackett | Backup | Fetch
+  fetch:
+    src: "{{ path_host_jackett_backup_dest }}/{{ filename_jackett_backup_date }}"
+    # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
+    dest: "{{ path_git_root }}/apps/jackett/backups"
