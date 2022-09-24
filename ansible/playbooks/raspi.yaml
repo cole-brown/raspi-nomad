@@ -821,6 +821,22 @@
     #   when: run.nomad.qbittorrent
     #   register: qbittorrent_config_logging
 
+    - name: Nomad Job | qBittorrent | Logging | Check if Log File Exists
+      stat:
+        path: "/srv/nomad/qbittorrent/config/qBittorrent/logs/qbittorrent.log"
+      register: qbittorrent_log_file
+
+    # Ansible doesn't have just "warning" message, so do `fail` + `ignore_errors`.
+    # https://stackoverflow.com/a/63557091
+    - name: Nomad Job | qBittorrent | Logging | Warn if Log File Exists
+      fail:
+        msg: "WARNING: `logs/qbittorrent.log` probably shouldn't exist as logs should be disabled."
+      when: qbittorrent_log_file.stat.exists
+      ignore_errors: True
+
+    # Wait to delete the log file until after restart so that qBittorrent maybe
+    # gets into a state of not writing to it.
+
     - name: Nomad Job | qBittorrent | Restart Job if Changes (Stop)
       community.general.nomad_job:
         host: localhost # This is run on the remote host `home_2019_raspi4`, so "localhost" == Ansible host == "the target"?
@@ -854,6 +870,12 @@
         - run.nomad.qbittorrent
         - nomad_job_qbittorrent_restart is defined
         - nomad_job_qbittorrent_restart.changed
+
+    - name: Nomad Job | qBittorrent | Logging | Delete Log File if it Exists
+      file:
+        state: absent
+        path: "/srv/nomad/qbittorrent/config/qBittorrent/logs/qbittorrent.log"
+      when: qbittorrent_log_file.stat.exists
 
     - name: Nomad Job | qBittorrent | Backup | Make Filename
       set_fact:
