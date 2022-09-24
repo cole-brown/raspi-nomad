@@ -772,9 +772,6 @@
     - name: Nomad Job | qBittorrent | Logging | Disabled?
       community.general.ini_file:
         path: "/srv/nomad/qbittorrent/config/qBittorrent/qBittorrent.conf"
-        owner: "main"
-        group: "main"
-        mode: "u=rw,go=r"
         section: "Application"
         option: "FileLogger\\Enabled"
         value: "false"
@@ -802,9 +799,6 @@
     - name: Nomad Job | qBittorrent | Logging | Disable
       community.general.ini_file:
         path: "/srv/nomad/qbittorrent/config/qBittorrent/qBittorrent.conf"
-        owner: "main"
-        group: "main"
-        mode: "u=rw,go=r"
         section: "Application"
         option: "FileLogger\\Enabled"
         value: "false"
