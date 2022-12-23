@@ -43,17 +43,38 @@
     # [Set-Up] Gather Facts
     # --------------------------------------------------------------------------
 
-    - name: Git Root | Gather Fact
+    - name: Local Fact | Gather | Git Root
       delegate_to: localhost
       command:
         cmd: "git rev-parse --show-toplevel"
       register: cmd_git_root
       changed_when: false
 
-    - name: Git Root | Set Fact
+    - name: Local Fact | Set | Git Root
       set_fact:
         path_git_root: "{{ cmd_git_root.stdout }}"
 
+    - name: Local Fact | Gather | User
+      delegate_to: localhost
+      command:
+        cmd: "whoami"
+      register: cmd_whoami
+      changed_when: false
+
+    - name: Local Fact | Set | User
+      set_fact:
+        user_local: "{{ cmd_whoami.stdout }}"
+
+    - name: Local Fact | Gather | Group
+      delegate_to: localhost
+      command:
+        cmd: "getent group {{ user_local }}"
+      register: cmd_getent
+      changed_when: false
+
+    - name: Local Fact | Set | Group
+      set_fact:
+        group_local: "{{ cmd_getent.stdout.split(':')[0] }}"
 
     # --------------------------------------------------------------------------
     # [Install] Prerequisites
