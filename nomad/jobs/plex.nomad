@@ -180,7 +180,7 @@ job "plex" {
         #
         # "Optionally you can obtain a claim token from https://plex.tv/claim and input here.
         # Keep in mind that the claim tokens expire within 4 minutes."
-        PLEX_CLAIM = "claim-XYdhsiUR8y-bMBvyeFYi"
+        PLEX_CLAIM = "claim-dHUTTBtbNycWAq8stkJr"
       }
 
       service {
