@@ -36,8 +36,13 @@
   register: docker_container_pihole
   changed_when: false
 
+
+# ------------------------------------------------------------------------------
+# Whitelisting
+# ------------------------------------------------------------------------------
+
 # Save whitelists before & diff after to check for changes.
-- name: Nomad Job | Pi-Hole | DNS | Get Whitelisted Domains (Before)
+- name: Nomad Job | Pi-Hole | DNS | Whitelist | Get Domains (Before)
   community.docker.docker_container_exec:
     container: "{{ docker_container_pihole.stdout }}"
     argv:
@@ -48,7 +53,7 @@
   register: pihole_whitelisted_domains_pre
   changed_when: false
 
-- name: Nomad Job | Pi-Hole | DNS | Get Whitelisted Regexes (Before)
+- name: Nomad Job | Pi-Hole | DNS | Whitelist | Get Regexes (Before)
   community.docker.docker_container_exec:
     container: "{{ docker_container_pihole.stdout }}"
     argv:
@@ -61,7 +66,7 @@
 
 # And now we should be able to run commands on the container whose name is
 # in `docker_container_pihole.stdout`.
-- name: Nomad Job | Pi-Hole | DNS | Whitelist Domains
+- name: Nomad Job | Pi-Hole | DNS | Whitelist | Set Domains
   community.docker.docker_container_exec:
     container: "{{ docker_container_pihole.stdout }}"
     # Use `command` instead of `argv` so that space-separated domain list
@@ -74,7 +79,7 @@
   register: pihole_whitelist_domains
   changed_when: false
 
-- name: Nomad Job | Pi-Hole | DNS | Whitelist Regexes
+- name: Nomad Job | Pi-Hole | DNS | Whitelist | Set Regexes
   community.docker.docker_container_exec:
     container: "{{ docker_container_pihole.stdout }}"
     argv:
@@ -90,7 +95,7 @@
   changed_when: false
 
 # Save whitelists before & diff after to check for changes.
-- name: Nomad Job | Pi-Hole | DNS | Get Whitelisted Domains (After)
+- name: Nomad Job | Pi-Hole | DNS | Whitelist | Get Domains (After)
   community.docker.docker_container_exec:
     container: "{{ docker_container_pihole.stdout }}"
     argv:
@@ -102,7 +107,7 @@
   changed_when: false
   # TODO: Does this show all the whitelisted domains? I only see 45, which seems like too few...
 
-- name: Nomad Job | Pi-Hole | DNS | Get Whitelisted Regexes (After)
+- name: Nomad Job | Pi-Hole | DNS | Whitelist | Get Regexes (After)
   community.docker.docker_container_exec:
     container: "{{ docker_container_pihole.stdout }}"
     argv:
@@ -115,13 +120,110 @@
 
 # Reload the Pi-Hole DNS Server now that we're done with the changes, if the
 # whitelisting actually changed anything...
-- name: Nomad Job | Pi-Hole | DNS | Whitelists Changed?
+- name: Nomad Job | Pi-Hole | DNS | Whitelist | Changed?
   set_fact:
-    pihole_whitelist_domains_changed: "{{ pihole_whitelisted_domains_pre != pihole_whitelisted_domains_post }}"
-    pihole_whitelist_regexes_changed: "{{ pihole_whitelisted_regexes_pre != pihole_whitelisted_regexes_post }}"
+    # pihole_whitelist_domains_changed: "{{ pihole_whitelisted_domains_pre != pihole_whitelisted_domains_post }}"
+    # pihole_whitelist_regexes_changed: "{{ pihole_whitelisted_regexes_pre != pihole_whitelisted_regexes_post }}"
+    pihole_whitelist_changed: "{{ pihole_whitelisted_domains_pre != pihole_whitelisted_domains_post or pihole_whitelisted_regexes_pre != pihole_whitelisted_regexes_post }}"
   when: docker_container_pihole.stdout
   # Try to make this step's status reflect its name?
   changed_when: pihole_whitelist_domains_changed or pihole_whitelist_regexes_changed
+
+# ------------------------------------------------------------------------------
+# Blacklisting
+# ------------------------------------------------------------------------------
+
+# Save blacklists before & diff after to check for changes.
+- name: Nomad Job | Pi-Hole | DNS | Blacklist | Get Domains (Before)
+  community.docker.docker_container_exec:
+    container: "{{ docker_container_pihole.stdout }}"
+    argv:
+      - pihole
+      - blacklist
+      - --list
+  when: docker_container_pihole.stdout
+  register: pihole_blacklisted_domains_pre
+  changed_when: false
+
+- name: Nomad Job | Pi-Hole | DNS | Blacklist | Get Regexes (Before)
+  community.docker.docker_container_exec:
+    container: "{{ docker_container_pihole.stdout }}"
+    argv:
+      - pihole
+      - regex
+      - --list
+  when: docker_container_pihole.stdout
+  register: pihole_blacklisted_regexes_pre
+  changed_when: false
+
+# And now we should be able to run commands on the container whose name is
+# in `docker_container_pihole.stdout`.
+- name: Nomad Job | Pi-Hole | DNS | Blacklist | Set Domains
+  community.docker.docker_container_exec:
+    container: "{{ docker_container_pihole.stdout }}"
+    # Use `command` instead of `argv` so that space-separated domain list
+    # becomes separate args properly.
+    command: "pihole blacklist --noreload {{ blacklist_domains }}"
+  with_items: "{{ pihole.blacklist.domains }}"
+  loop_control:
+    loop_var: blacklist_domains
+  when: docker_container_pihole.stdout
+  register: pihole_blacklist_domains
+  changed_when: false
+
+- name: Nomad Job | Pi-Hole | DNS | Blacklist | Set Regexes
+  community.docker.docker_container_exec:
+    container: "{{ docker_container_pihole.stdout }}"
+    argv:
+      - pihole
+      - regex
+      - --noreload
+      - "{{ blacklist_regex }}"
+  with_items: "{{ pihole.blacklist.regexes }}"
+  loop_control:
+    loop_var: blacklist_regex
+  when: docker_container_pihole.stdout
+  register: pihole_blacklist_domains
+  changed_when: false
+
+# Save blacklists before & diff after to check for changes.
+- name: Nomad Job | Pi-Hole | DNS | Blacklist | Get Domains (After)
+  community.docker.docker_container_exec:
+    container: "{{ docker_container_pihole.stdout }}"
+    argv:
+      - pihole
+      - blacklist
+      - --list
+  when: docker_container_pihole.stdout
+  register: pihole_blacklisted_domains_post
+  changed_when: false
+
+- name: Nomad Job | Pi-Hole | DNS | Blacklist | Get Regexes (After)
+  community.docker.docker_container_exec:
+    container: "{{ docker_container_pihole.stdout }}"
+    argv:
+      - pihole
+      - --black-regex
+      - --list
+  when: docker_container_pihole.stdout
+  register: pihole_blacklisted_regexes_post
+  changed_when: false
+
+# Reload the Pi-Hole DNS Server now that we're done with the changes, if the
+# blacklisting actually changed anything...
+- name: Nomad Job | Pi-Hole | DNS | Changed?
+  set_fact:
+    # pihole_blacklist_domains_changed: "{{ pihole_blacklisted_domains_pre != pihole_blacklisted_domains_post }}"
+    # pihole_blacklist_regexes_changed: "{{ pihole_blacklisted_regexes_pre != pihole_blacklisted_regexes_post }}"
+    pihole_blacklist_changed: "{{ pihole_blacklisted_domains_pre != pihole_blacklisted_domains_post or pihole_blacklisted_regexes_pre != pihole_blacklisted_regexes_post }}"
+  when: docker_container_pihole.stdout
+  # Try to make this step's status reflect its name?
+  changed_when: pihole_blacklist_domains_changed or pihole_blacklist_regexes_changed
+
+
+# ------------------------------------------------------------------------------
+# Reload DNS?
+# ------------------------------------------------------------------------------
 
 - name: Nomad Job | Pi-Hole | DNS | Reload DNS Lists
   community.docker.docker_container_exec:
@@ -131,7 +233,12 @@
       - restartdns
       # Reload the DNS lists without flushing the cache or restarting the DNS server.
       - reload-lists
-  when: pihole_whitelist_domains_changed or pihole_whitelist_regexes_changed
+  when: pihole_whitelist_changed or pihole_blacklist_changed
+
+
+# ------------------------------------------------------------------------------
+# Backup
+# ------------------------------------------------------------------------------
 
 # To check your machine's DNS Server:
 #   ```

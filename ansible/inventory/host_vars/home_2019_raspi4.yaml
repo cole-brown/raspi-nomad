@@ -340,3 +340,47 @@ pihole:
 
       # Twitter
       - '(\.|^)twimg\.com$'
+
+  # ----------------------------------------------------------------------------
+  # Blacklists (domains & regexes)
+  # ----------------------------------------------------------------------------
+  blacklist:
+    # ------------------------------
+    # Blacklist, Domains
+    # ------------------------------
+    # More than one domain is allowed per entry; separate with spaces.
+    domains:
+      # ------------------------------------------------------------------------
+      # TV
+      # ------------------------------------------------------------------------
+
+      # ------------------------------
+      # Ads: Android TV Launcher
+      #   (Shield TV, maybe Fire TV)
+      # ------------------------------
+      # https://www.reddit.com/r/ShieldAndroidTV/comments/sjv7ry/comment/hvjcv9b/
+      - androidtvwatsonfe-pa.googleapis.com
+
+      # ------------------------------
+      # Ads: Samsung TV
+      # ------------------------------
+      # https://www.reddit.com/r/YouShouldKnow/comments/gn7fw5/ysk_if_you_own_a_samsung_smart_tv_that_has_ads/
+      - ads.samsung.com
+      - samsungads.com
+
+      # ------------------------------
+      # Ads: LG TV
+      # ------------------------------
+      # # https://www.reddit.com/r/YouShouldKnow/comments/gn7fw5/ysk_if_you_own_a_samsung_smart_tv_that_has_ads/
+      - ngfts.lge.com
+      - us.ad.lgsmartad.com
+      - lgad.cjpowercast.com
+      - edgesuite.net
+      - us.info.lgsmartad.com
+
+    # ------------------------------
+    # Whitelist, Regex
+    # ------------------------------
+    # Only one regular expression allowed per entry!
+    regexes: [ ]
+

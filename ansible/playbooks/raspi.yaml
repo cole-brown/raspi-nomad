@@ -386,9 +386,12 @@
 
 
     # --------------------------------------------------------------------------
-    # Nomad Volume Directories
+    # Create Directories
     # --------------------------------------------------------------------------
 
+    # ------------------------------
+    # Nomad Host Volumes
+    # ------------------------------
     - name: Nomad | Host Volumes
       include_tasks: "nomad.host-volume.yaml"
       with_items: "{{ nomad.host_volumes }}"
