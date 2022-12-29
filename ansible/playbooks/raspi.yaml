@@ -132,7 +132,7 @@
               # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html
               # `ansible.builtin.copy` uses `sha1` for checksumming.
               dearmored: "7c67919f823e005af75293a0edac7d0799252213"
-      when: run.apt_repo
+      when: run.apt.repo
 
     - name: Apt | HashiCorp Repo
       include_tasks: "apt.add-repo.yaml"
@@ -151,7 +151,7 @@
               # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html
               # `ansible.builtin.copy` uses `sha1` for checksumming.
               dearmored: "dcece7980f1a183b1d59b26354247a29057786e0"
-      when: run.apt_repo
+      when: run.apt.repo
 
 
     # --------------------------------------------------------------------------
@@ -171,7 +171,7 @@
     - name: Apt | Upgrade
       apt:
         upgrade: yes
-      when: run.apt_upgrade
+      when: run.apt.upgrade
 
 
     # --------------------------------------------------------------------------
@@ -399,6 +399,24 @@
         loop_var: host_volume
       when: run.config.nomad
 
+    # ------------------------------
+    # Backup Directory
+    # ------------------------------
+    # Plex can have a huge config directory due to it's fast-forward/rewind
+    # thumbnails. So... Save the backups to a directory that isn't on the raspi,
+    # since it only has a tiny flash card worth of +terabytes+ gigabytes.
+    - name: Backup Directory | Create
+      delegate_to: localhost
+      file:
+        state: directory
+        path: "{{ backup.root }}"
+        owner: "{{ user_local }}"
+        group: "{{ group_local }}"
+        # Defaults to not recursing into directory.
+        # Could adjust if we need to mess with permissions of children.
+        # recurse: no
+      # when: run.config.nomad
+
 
     # --------------------------------------------------------------------------
     # Nomad & Consul: Final Configuration
@@ -513,15 +531,69 @@
     # [Clean-Up]
     # --------------------------------------------------------------------------
 
+    # ------------------------------
+    # Apt
+    # ------------------------------
     - name: Apt | Auto-Clean
       apt:
         autoclean: yes
-      when: run.apt_clean_up
+      when: run.apt.clean
 
     - name: Apt | Auto-Remove
       apt:
         autoremove: yes
-      when: run.apt_clean_up
+      when: run.apt.clean
+
+    # ------------------------------
+    # Backup Directory
+    # ------------------------------
+    # We may not have backed anything up, actually. If not, delete the backup dir we made for today.
+    - name: Clean Backups | Sub-Dirs | Find
+      delegate_to: localhost
+      find:
+        paths: "{{ backup.root }}"
+        file_type: directory
+        recurse: no
+      register: find_backup_dirs
+      when: run.backup.clean
+
+    - name: Clean Backups | Sub-Dirs | Check for Empties
+      delegate_to: localhost
+      find:
+        paths: "{{ item.path }}"
+        recurse: no
+      with_items: "{{ find_backup_dirs.files }}"
+      register: find_backup_empties
+      when:
+        - run.backup.clean
+        - find_backup_dirs.matched > 0
+
+    - name: Clean Backups | Sub-Dirs | Delete Empties
+      delegate_to: localhost
+      file:
+        path: "{{ item.item.path }}"
+        state: absent
+      with_items: "{{ find_backup_empties.results }}"
+      when:
+        - run.backup.clean
+        - item.matched == 0
+
+    - name: Clean Backups | Root Dir | Check if Empty
+      delegate_to: localhost
+      find:
+        paths: "{{ backup.root }}"
+        recurse: no
+      register: find_backup_root
+      when: run.backup.clean
+
+    - name: Clean Backups | Root Dir | Delete if Empty
+      delegate_to: localhost
+      file:
+        path: "{{ backup.root }}"
+        state: absent
+      when:
+        - run.backup.clean
+        - find_backup_root.matched == 0
 
 
   # ============================================================================

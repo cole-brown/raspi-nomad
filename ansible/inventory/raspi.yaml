@@ -37,6 +37,9 @@ dc_2021_home:
         #     owner: root
         #     group: root
 
+      backup:
+        # This is on localhost.
+        root: "/mnt/nfs/media/backup/{{ '%Y-%m-%d' | strftime }}"
       # Speed up playbook testing...
       run:
         install:
@@ -44,9 +47,12 @@ dc_2021_home:
           nomad: no
           consul: no
           cifs: no
-        apt_repo: no
-        apt_upgrade: no
-        apt_clean_up: no
+        apt:
+          repo: no
+          upgrade: no
+          clean: no
+        backup:
+          clean: yes
         config:
           docker: no
           nomad: no
@@ -55,4 +61,5 @@ dc_2021_home:
         nomad:
           pihole: no
           jackett: no
-          qbittorrent: yes
+          qbittorrent: no
+          plex: yes

@@ -38,32 +38,3 @@
     #   ansible.builtin.debug:
     #     var: groups
 
-    - name: Local Fact | Gather | User
-      delegate_to: localhost
-      command:
-        cmd: "whoami"
-      register: cmd_whoami
-      changed_when: false
-
-    - name: Local Fact | Set | User
-      set_fact:
-        user_local: "{{ cmd_whoami.stdout }}"
-
-    - name: Local Fact | Gather | Group
-      delegate_to: localhost
-      command:
-        cmd: "getent group {{ user_local }}"
-      register: cmd_getent
-      changed_when: false
-
-    - name: Local Fact | Set | Group
-      set_fact:
-        group_local: "{{ cmd_getent.stdout.split(':')[0] }}"
-
-    - name: Print | Local User
-      ansible.builtin.debug:
-        var: user_local
-
-    - name: Print | Local Group
-      ansible.builtin.debug:
-        var: group_local
