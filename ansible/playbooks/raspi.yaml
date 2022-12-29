@@ -526,6 +526,13 @@
       include_tasks: "nomad-jobs/qbittorrent.yaml"
       when: run.nomad.qbittorrent
 
+    # ------------------------------
+    # Plex
+    # ------------------------------
+    - name: Nomad Job | Plex
+      include_tasks: "nomad-jobs/plex.yaml"
+      when: run.nomad.plex
+
 
     # --------------------------------------------------------------------------
     # [Clean-Up]
