@@ -45,6 +45,7 @@ dc_2021_home:
         local:
         root: "/mnt/nfs/media/backup/{{ '%Y-%m-%d' | strftime }}"
         host:
+          # Path will end up something like: "/tmp/ansible.862_jic2{{ tmp_suffix }}"
           tmp_suffix: ".backup"
 
       # Speed up playbook testing...
