@@ -75,4 +75,6 @@
   file:
     path: "{{ path_host_jackett_backup_dest }}"
     state: absent
-  when: run.backup.clean
+  when:
+    - run.backup.create
+    - run.backup.clean

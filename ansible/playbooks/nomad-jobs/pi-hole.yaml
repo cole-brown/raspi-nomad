@@ -293,4 +293,6 @@
   file:
     path: "{{ path_pihole_backup_docker_on_host }}/{{ filename_pihole_backup_date }}"
     state: absent
-  when: run.backup.clean
+  when:
+    - run.backup.create
+    - run.backup.clean
