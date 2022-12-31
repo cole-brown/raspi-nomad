@@ -26,11 +26,16 @@
   delegate_to: localhost
   when: nomad_job_jackett.changed
 
+
+# ------------------------------------------------------------------------------
+# Backup
+# ------------------------------------------------------------------------------
+
 - name: Nomad Job | Jackett | Backup | Make Filename
   set_fact:
     filename_jackett_backup_iso8601: "jackett-backup.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
     filename_jackett_backup_date: "jackett-backup.{{ ansible_date_time.date }}.tar.gz"
-    path_host_jackett_backup_dest: "{{ backup_temp_root.path }}"
+    path_host_jackett_backup_dest: "{{ ( backup_temp_root.path, 'jackett' ) | path_join }}"
     path_host_jackett_backup_src: "/srv/nomad/jackett/config/Jackett"
   changed_when: false
   when: run.backup.create
@@ -65,3 +70,9 @@
     # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
     dest: "{{ backup.local.root }}"
   when: run.backup.create
+
+- name: Nomad Job | Jackett | Backup | Clean
+  file:
+    path: "{{ path_host_jackett_backup_dest }}"
+    state: absent
+  when: run.backup.clean

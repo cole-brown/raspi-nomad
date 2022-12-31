@@ -26,9 +26,29 @@
   delegate_to: localhost
   when: nomad_job_plex.changed
 
+
+# ------------------------------------------------------------------------------
+# Backup
+# ------------------------------------------------------------------------------
+
 - name: Nomad Job | Plex | Backup | Make Filename
   set_fact:
     filename_plex_backup_iso8601: "{{ plex.backup.filename_prefix }}.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
+    filename_plex_backup_date: "{{ plex.backup.filename_prefix }}.{{ ansible_date_time.date }}.tar.gz"
+    path_host_plex_backup_dest: "{{ ( backup_temp_root.path, 'plex' ) | path_join }}"
+    path_host_plex_backup_src: "/srv/nomad/plex/config/Library/Application Support/Plex Media Server"
+  changed_when: false
+  when: run.backup.create
+
+- name: Nomad Job | Plex | Backup | Ensure '{{ path_host_plex_backup_dest }}' Exists
+  file:
+    state: directory
+    path: "{{ path_host_plex_backup_dest }}"
+    owner: root
+    group: root
+    recurse: no
+  changed_when: false
+  when: run.backup.create
 
 # Backup the config dir, minus a few of these subdirs:
 #   main@home-2019-raspi4:/srv/nomad/plex/config$ tree -d -L 4
@@ -47,69 +67,34 @@
 # This only says skip "Cache" (the "preferences.xml" is in "Plex Media Server/")
 #   - https://support.plex.tv/articles/201539237-backing-up-plex-media-server-data/
 # ...but I don't want to back up crash reports or logs, so skip those too.
-- name: Nomad Job | Plex | Backup | Make Filename
-  set_fact:
-    filename_plex_backup_iso8601: "{{ plex.backup.filename_prefix }}.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
-    filename_plex_backup_date: "{{ plex.backup.filename_prefix }}.{{ ansible_date_time.date }}.tar.gz"
-    path_host_plex_backup_dest: "/srv/nomad/plex/backups"
-    path_host_plex_backup_src: "/srv/nomad/plex/config/Library/Application Support/Plex Media Server"
-  changed_when: false
-
-# # Plex backups can be a bit big, so delete any old per-run backups, but leave the per-day copy?
-# - name: Nomad Job | Plex | Backup | Clean Up | Get Old Backups to Delete
-#   command:
-#     chdir: "{{ path_host_plex_backup_dest }}"
-#     cmd: find . -type f -regextype posix-extended -regex '\./{{ plex.backup.filename_prefix }}\.[0-9]{8}T[0-9]{6}.*' -delete
-
-- name: Nomad Job | Plex | Backup | Ensure '{{ path_host_plex_backup_dest }}' Exists
-  file:
-    state: directory
-    path: "{{ path_host_plex_backup_dest }}"
-    owner: root
-    group: root
-    recurse: no
-  changed_when: false
-
 - name: Nomad Job | Plex | Backup | Make
   community.general.archive:
     path: "{{ path_host_plex_backup_src }}"
     exclusion_patterns:
       - "Crash Reports"
       - "Logs"
+      # These are the generated seek thumbnails. Avoid in order to make backup
+      # reasonably sized; Plex can regenerate them as needed?
+      - "Thumbnails"
     dest: "{{ path_host_plex_backup_dest }}/{{ filename_plex_backup_iso8601 }}"
+  when: run.backup.create
 
 - name: Nomad Job | Plex | Backup | Copy/Rename
   copy:
     remote_src: true
     src: "{{ path_host_plex_backup_dest }}/{{ filename_plex_backup_iso8601 }}"
     dest: "{{ path_host_plex_backup_dest }}/{{ filename_plex_backup_date }}"
+  when: run.backup.create
 
 - name: Nomad Job | Plex | Backup | Fetch
   fetch:
     src: "{{ path_host_plex_backup_dest }}/{{ filename_plex_backup_date }}"
     # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
-    dest: "{{ path_git_root }}/apps/plex/backups"
+    dest: "{{ backup.local.root }}"
+  when: run.backup.create
 
-# Plex backups can be a bit big, so delete the old backups (except for the per-day one for today).
-- name: Nomad Job | Plex | Backup | Clean Up | Get Old Backups to Delete
-  find:
-    paths:
-      - "{{ path_host_plex_backup_dest }}"
-    use_regex: true # false == use globs, true == use Python regexes
-    # NOTE: YAML double quotes require escaping backslash; YAML single quotes do
-    # not, so use single quotes here.
-    patterns:
-      - '{{ plex.backup.filename_prefix }}\.[0-9]{8}T[0-9]{6}\.tar.gz'
-      - '{{ plex.backup.filename_prefix }}\.[0-9]{4}-[0-9]{2}-[0-9]{2}\.tar.gz'
-    excludes:
-      - "{{ filename_plex_backup_date }}" # Don't find this, and thus don't delete today's backup.
-  register: plex_backups_found
-
-- debug:
-    var: plex_backups_found
-
-# But
-# TODO: That?
-
-# Or we could just delete all backups?
-# TODO: That?
+- name:  Nomad Job | Plex | Backup | Clean
+  file:
+    path: "{{ path_host_plex_backup_dest }}"
+    state: absent
+  when: run.backup.clean

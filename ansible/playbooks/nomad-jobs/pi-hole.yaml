@@ -250,13 +250,14 @@
 #   command:
 #     cmd: "systemd-resolve --status | grep 'DNS Server'"
 
-- name: Nomad Job | Pi-Hole | Backup | Make Filename
+- name: Nomad Job | Pi-Hole | Backup | Make Filenames
   set_fact:
     filename_pihole_backup_iso8601: "pihole-backup.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
     filename_pihole_backup_date: "pihole-backup.{{ ansible_date_time.date }}.tar.gz"
-    path_docker_pihole_backup: "/var/local/pihole/backups"
+    path_docker_pihole_backup: "{{ ( backup_temp_root.path, 'pihole' ) | path_join }}"
     path_host_pihole_backup: "/srv/nomad/pihole/backups"
   changed_when: false
+  when: run.backup.create
 
 - name: Nomad Job | Pi-Hole | Backup | Ensure '{{ path_host_pihole_backup }}' Exists
   file:
@@ -265,6 +266,7 @@
     owner: root
     group: root
     recurse: no
+  when: run.backup.create
 
 - name: Nomad Job | Pi-Hole | Backup | Make
   community.docker.docker_container_exec:
@@ -274,15 +276,24 @@
       - admin
       - teleporter
       - "{{ path_docker_pihole_backup }}/{{ filename_pihole_backup_iso8601 }}"
+  when: run.backup.create
 
 - name: Nomad Job | Pi-Hole | Backup | Copy/Rename
   copy:
     remote_src: true
     src: "{{ path_host_pihole_backup }}/{{ filename_pihole_backup_iso8601 }}"
     dest: "{{ path_host_pihole_backup }}/{{ filename_pihole_backup_date }}"
+  when: run.backup.create
 
 - name: Nomad Job | Pi-Hole | Backup | Fetch
   fetch:
     src: "{{ path_host_pihole_backup }}/{{ filename_pihole_backup_date }}"
     # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
-    dest: "{{ path_git_root }}/apps/pihole/backups"
+    dest: "{{ backup.local.root }}"
+  when: run.backup.create
+
+- name:  Nomad Job | Pi-Hole | Backup | Clean
+  file:
+    path: "{{ path_host_pihole_backup }}"
+    state: absent
+  when: run.backup.clean

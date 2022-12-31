@@ -561,7 +561,20 @@
       when: run.apt.clean
 
     # ------------------------------
-    # Backup Directory
+    # Backup Directory - Ansible host (tempdir)
+    # ------------------------------
+    # Delete entire directory.
+    - name: Clean Backups | Root Dir | Delete if Empty
+      delegate_to: localhost
+      file:
+        path: "{{ backup.local.root }}"
+        state: absent
+      when:
+        - run.backup.clean
+        - find_backup_root.matched == 0
+
+    # ------------------------------
+    # Backup Directory - localhost
     # ------------------------------
     # We may not have backed anything up, actually. If not, delete the backup dir we made for today.
     - name: Clean Backups | Sub-Dirs | Find
