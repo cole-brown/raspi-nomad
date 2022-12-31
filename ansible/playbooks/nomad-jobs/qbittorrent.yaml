@@ -9,7 +9,7 @@
 #     include_tasks: "nomad-jobs/qbittorrent.yaml"
 #     when: run.nomad.qbittorrent
 
-    - name: Nomad Job | qBittorrent | Run Job
+- name: Nomad Job | qBittorrent | Run Job
       community.general.nomad_job:
         host: localhost # This is run on the remote host `home_2019_raspi4`, so "localhost" == Ansible host == "the target"?
         content: "{{ lookup('ansible.builtin.file', '{{ path_git_root }}/nomad/jobs/qbittorrent.nomad') }}"
@@ -17,16 +17,16 @@
         use_ssl: no
       register: nomad_job_qbittorrent
 
-    # Wait for it to be running... Can't get into the docker network from the
-    # Raspberry Pi, so delegate to here.
-    - name: Nomad Job | qBittorrent | Check Web UI
+# Wait for it to be running... Can't get into the docker network from the
+# Raspberry Pi, so delegate to here.
+- name: Nomad Job | qBittorrent | Check Web UI
       wait_for:
         host: 192.168.50.7
         port: 80
       delegate_to: localhost
       when: nomad_job_qbittorrent.changed
 
-    - name: Nomad Job | qBittorrent | Jackett Config File
+- name: Nomad Job | qBittorrent | Jackett Config File
       copy:
         src: "{{ path_git_root }}/apps/qbittorrent/jackett.json"
         dest: "/srv/nomad/qbittorrent/config/qBittorrent/nova3/engines/"
@@ -36,17 +36,17 @@
         directory_mode: "u=rwx,go=rx"
       register: qbittorrent_config_jackett
 
-    # Changing logging setting via `community.general.ini_file` always said
-    # "changed" and never actually changed anything?.. ...but `blockinfile` also
-    # says that... Might need qBittorrent not running to be able to change its
-    # settings?
-    #
-    # So...
-    #   1) Do we need to make the change?
-    #   2) Stop qBittorrent.
-    #   3) Make change.
-    #   4) Start qBittorrent.
-    - name: Nomad Job | qBittorrent | Logging | Disabled?
+# Changing logging setting via `community.general.ini_file` always said
+# "changed" and never actually changed anything?.. ...but `blockinfile` also
+# says that... Might need qBittorrent not running to be able to change its
+# settings?
+#
+# So...
+#   1) Do we need to make the change?
+#   2) Stop qBittorrent.
+#   3) Make change.
+#   4) Start qBittorrent.
+- name: Nomad Job | qBittorrent | Logging | Disabled?
       community.general.ini_file:
         path: "/srv/nomad/qbittorrent/config/qBittorrent/qBittorrent.conf"
         section: "Application"
@@ -55,7 +55,7 @@
       check_mode: true # "dry run"
       register: qbittorrent_check_logging
 
-    - name: Nomad Job | qBittorrent | Logging | Stop Job for Config Changes
+- name: Nomad Job | qBittorrent | Logging | Stop Job for Config Changes
       community.general.nomad_job:
         host: localhost # This is run on the remote host `home_2019_raspi4`, so "localhost" == Ansible host == "the target"?
         name: qbittorrent
@@ -63,12 +63,12 @@
         use_ssl: no
       when: qbittorrent_check_logging.changed
 
-    - name: Nomad Job | qBittorrent | Logging | Wait for Job to Stop
+- name: Nomad Job | qBittorrent | Logging | Wait for Job to Stop
       pause:
         seconds: 2
       when: qbittorrent_check_logging.changed
 
-    - name: Nomad Job | qBittorrent | Logging | Disable
+- name: Nomad Job | qBittorrent | Logging | Disable
       community.general.ini_file:
         path: "/srv/nomad/qbittorrent/config/qBittorrent/qBittorrent.conf"
         section: "Application"
@@ -78,35 +78,35 @@
       when: qbittorrent_check_logging.changed
       register: qbittorrent_config_logging
 
-    # - name: Nomad Job | qBittorrent | Disable Logging
-    #   blockinfile:
-    #     path: "/srv/nomad/qbittorrent/config/qBittorrent/qBittorrent.conf"
-    #     owner: "main"
-    #     group: "main"
-    #     mode: "u=rw,go=r"
-    #     block: |
-    #       [Application]
-    #       FileLogger\\Enabled=false
-    #     backup: true
-    #   register: qbittorrent_config_logging
+# - name: Nomad Job | qBittorrent | Disable Logging
+#   blockinfile:
+#     path: "/srv/nomad/qbittorrent/config/qBittorrent/qBittorrent.conf"
+#     owner: "main"
+#     group: "main"
+#     mode: "u=rw,go=r"
+#     block: |
+#       [Application]
+#       FileLogger\\Enabled=false
+#     backup: true
+#   register: qbittorrent_config_logging
 
-    - name: Nomad Job | qBittorrent | Logging | Check if Log File Exists
+- name: Nomad Job | qBittorrent | Logging | Check if Log File Exists
       stat:
         path: "/srv/nomad/qbittorrent/config/qBittorrent/logs/qbittorrent.log"
       register: qbittorrent_log_file
 
-    # Ansible doesn't have just "warning" message, so do `fail` + `ignore_errors`.
-    # https://stackoverflow.com/a/63557091
-    - name: Nomad Job | qBittorrent | Logging | Warn if Log File Exists
+# Ansible doesn't have just "warning" message, so do `fail` + `ignore_errors`.
+# https://stackoverflow.com/a/63557091
+- name: Nomad Job | qBittorrent | Logging | Warn if Log File Exists
       fail:
         msg: "WARNING: `logs/qbittorrent.log` probably shouldn't exist as logs should be disabled."
       when: qbittorrent_log_file.stat.exists
       ignore_errors: True
 
-    # Wait to delete the log file until after restart so that qBittorrent maybe
-    # gets into a state of not writing to it.
+# Wait to delete the log file until after restart so that qBittorrent maybe
+# gets into a state of not writing to it.
 
-    - name: Nomad Job | qBittorrent | Restart Job if Changes (Stop)
+- name: Nomad Job | qBittorrent | Restart Job if Changes (Stop)
       community.general.nomad_job:
         host: localhost # This is run on the remote host `home_2019_raspi4`, so "localhost" == Ansible host == "the target"?
         name: qbittorrent
@@ -114,7 +114,7 @@
         use_ssl: no
       when: qbittorrent_config_jackett.changed or qbittorrent_config_logging.changed
 
-    - name: Nomad Job | qBittorrent | Restart Job if Changes (Start)
+- name: Nomad Job | qBittorrent | Restart Job if Changes (Start)
       community.general.nomad_job:
         host: localhost # This is run on the remote host `home_2019_raspi4`, so "localhost" == Ansible host == "the target"?
         name: qbittorrent
@@ -124,9 +124,9 @@
       when: qbittorrent_config_jackett.changed or qbittorrent_config_logging.changed
       register: nomad_job_qbittorrent_restart
 
-    # Wait for it to be running... Can't get into the docker network from the
-    # Raspberry Pi, so delegate to here.
-    - name: Nomad Job | qBittorrent | Wait for Restart
+# Wait for it to be running... Can't get into the docker network from the
+# Raspberry Pi, so delegate to here.
+- name: Nomad Job | qBittorrent | Wait for Restart
       wait_for:
         host: 192.168.50.7
         port: 80
@@ -135,13 +135,17 @@
         - nomad_job_qbittorrent_restart is defined
         - nomad_job_qbittorrent_restart.changed
 
-    - name: Nomad Job | qBittorrent | Logging | Delete Log File if it Exists
+- name: Nomad Job | qBittorrent | Logging | Delete Log File if it Exists
       file:
         state: absent
         path: "/srv/nomad/qbittorrent/config/qBittorrent/logs/qbittorrent.log"
       when: qbittorrent_log_file.stat.exists
 
-    - name: Nomad Job | qBittorrent | Backup | Make Filename
+# ------------------------------------------------------------------------------
+# Backup
+# ------------------------------------------------------------------------------
+
+- name: Nomad Job | qBittorrent | Backup | Make Filename
       set_fact:
         filename_qbittorrent_backup_iso8601: "qbittorrent-backup.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
         filename_qbittorrent_backup_date: "qbittorrent-backup.{{ ansible_date_time.date }}.tar.gz"
@@ -149,7 +153,7 @@
         path_host_qbittorrent_backup_src: "/srv/nomad/qbittorrent/config/qBittorrent"
       changed_when: false
 
-    - name: Nomad Job | qBittorrent | Backup | Ensure '{{ path_host_qbittorrent_backup_dest }}' Exists
+- name: Nomad Job | qBittorrent | Backup | Ensure '{{ path_host_qbittorrent_backup_dest }}' Exists
       file:
         state: directory
         path: "{{ path_host_qbittorrent_backup_dest }}"
@@ -157,7 +161,7 @@
         group: root
         recurse: no
 
-    - name: Nomad Job | qBittorrent | Backup | Make
+- name: Nomad Job | qBittorrent | Backup | Make
       community.general.archive:
         path: "{{ path_host_qbittorrent_backup_src }}"
         exclusion_patterns:
@@ -166,13 +170,13 @@
           - "lockfile"
         dest: "{{ path_host_qbittorrent_backup_dest }}/{{ filename_qbittorrent_backup_iso8601 }}"
 
-    - name: Nomad Job | qBittorrent | Backup | Copy/Rename
+- name: Nomad Job | qBittorrent | Backup | Copy/Rename
       copy:
         remote_src: true
         src: "{{ path_host_qbittorrent_backup_dest }}/{{ filename_qbittorrent_backup_iso8601 }}"
         dest: "{{ path_host_qbittorrent_backup_dest }}/{{ filename_qbittorrent_backup_date }}"
 
-    - name: Nomad Job | qBittorrent | Backup | Fetch
+- name: Nomad Job | qBittorrent | Backup | Fetch
       fetch:
         src: "{{ path_host_qbittorrent_backup_dest }}/{{ filename_qbittorrent_backup_date }}"
         # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
