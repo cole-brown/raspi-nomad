@@ -30,9 +30,10 @@
   set_fact:
     filename_jackett_backup_iso8601: "jackett-backup.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
     filename_jackett_backup_date: "jackett-backup.{{ ansible_date_time.date }}.tar.gz"
-    path_host_jackett_backup_dest: "/srv/nomad/jackett/backups"
+    path_host_jackett_backup_dest: "{{ backup_temp_root.path }}"
     path_host_jackett_backup_src: "/srv/nomad/jackett/config/Jackett"
   changed_when: false
+  when: run.backup.create
 
 - name: Nomad Job | Jackett | Backup | Ensure '{{ path_host_jackett_backup_dest }}' Exists
   file:
@@ -41,6 +42,7 @@
     owner: root
     group: root
     recurse: no
+  when: run.backup.create
 
 - name: Nomad Job | Jackett | Backup | Make
   community.general.archive:
@@ -48,15 +50,18 @@
     exclusion_patterns:
       - "*log.txt"
     dest: "{{ path_host_jackett_backup_dest }}/{{ filename_jackett_backup_iso8601 }}"
+  when: run.backup.create
 
 - name: Nomad Job | Jackett | Backup | Copy/Rename
   copy:
     remote_src: true
     src: "{{ path_host_jackett_backup_dest }}/{{ filename_jackett_backup_iso8601 }}"
     dest: "{{ path_host_jackett_backup_dest }}/{{ filename_jackett_backup_date }}"
+  when: run.backup.create
 
 - name: Nomad Job | Jackett | Backup | Fetch
   fetch:
     src: "{{ path_host_jackett_backup_dest }}/{{ filename_jackett_backup_date }}"
     # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
-    dest: "{{ path_git_root }}/apps/jackett/backups"
+    dest: "{{ backup.local.root }}"
+  when: run.backup.create

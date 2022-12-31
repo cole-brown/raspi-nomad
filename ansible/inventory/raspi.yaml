@@ -38,8 +38,13 @@ dc_2021_home:
         #     group: root
 
       backup:
-        # This is on localhost.
+        # Two (main) backup folders:
+        #    1. The temp/working folder on the raspi.
+        #    2. The final/archive folder on localhost.
+        # The first is created as a temp dir on the Ansible target.
+        local:
         root: "/mnt/nfs/media/backup/{{ '%Y-%m-%d' | strftime }}"
+
       # Speed up playbook testing...
       run:
         install:
@@ -52,6 +57,9 @@ dc_2021_home:
           upgrade: no
           clean: no
         backup:
+          # Create backups for whatever steps run and can create backups?
+          create: yes
+          # Clean up backups at the end? E.g. delete any empty backup dirs.
           clean: yes
         config:
           docker: no

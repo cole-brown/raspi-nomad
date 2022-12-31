@@ -409,13 +409,22 @@
       delegate_to: localhost
       file:
         state: directory
-        path: "{{ backup.root }}"
+        path: "{{ backup.local.root }}"
         owner: "{{ user_local }}"
         group: "{{ group_local }}"
         # Defaults to not recursing into directory.
         # Could adjust if we need to mess with permissions of children.
         # recurse: no
-      # when: run.config.nomad
+      when: run.backup.create
+
+    # But we still need a backup dir on the raspi for temp work before
+    # transferring the final zip/whatever to localhost.
+    - name: Backup Directory | Create Temp
+      tempfile:
+        state: directory
+        suffix: backup
+      register: backup_temp_root
+      when: run.backup.create
 
 
     # --------------------------------------------------------------------------
@@ -558,7 +567,7 @@
     - name: Clean Backups | Sub-Dirs | Find
       delegate_to: localhost
       find:
-        paths: "{{ backup.root }}"
+        paths: "{{ backup.local.root }}"
         file_type: directory
         recurse: no
       register: find_backup_dirs
@@ -588,7 +597,7 @@
     - name: Clean Backups | Root Dir | Check if Empty
       delegate_to: localhost
       find:
-        paths: "{{ backup.root }}"
+        paths: "{{ backup.local.root }}"
         recurse: no
       register: find_backup_root
       when: run.backup.clean
@@ -596,7 +605,7 @@
     - name: Clean Backups | Root Dir | Delete if Empty
       delegate_to: localhost
       file:
-        path: "{{ backup.root }}"
+        path: "{{ backup.local.root }}"
         state: absent
       when:
         - run.backup.clean
