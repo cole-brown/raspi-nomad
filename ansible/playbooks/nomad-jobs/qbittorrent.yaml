@@ -149,9 +149,10 @@
       set_fact:
         filename_qbittorrent_backup_iso8601: "qbittorrent-backup.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
         filename_qbittorrent_backup_date: "qbittorrent-backup.{{ ansible_date_time.date }}.tar.gz"
-        path_host_qbittorrent_backup_dest: "/srv/nomad/qbittorrent/backups"
+    path_host_plex_backup_dest: "{{ ( backup_temp_root.path, 'qbittorrent' ) | path_join }}"
         path_host_qbittorrent_backup_src: "/srv/nomad/qbittorrent/config/qBittorrent"
       changed_when: false
+  when: run.backup.create
 
 - name: Nomad Job | qBittorrent | Backup | Ensure '{{ path_host_qbittorrent_backup_dest }}' Exists
       file:
@@ -160,6 +161,7 @@
         owner: root
         group: root
         recurse: no
+  when: run.backup.create
 
 - name: Nomad Job | qBittorrent | Backup | Make
       community.general.archive:
@@ -169,15 +171,24 @@
           - "ipc-socket"
           - "lockfile"
         dest: "{{ path_host_qbittorrent_backup_dest }}/{{ filename_qbittorrent_backup_iso8601 }}"
+  when: run.backup.create
 
 - name: Nomad Job | qBittorrent | Backup | Copy/Rename
       copy:
         remote_src: true
         src: "{{ path_host_qbittorrent_backup_dest }}/{{ filename_qbittorrent_backup_iso8601 }}"
         dest: "{{ path_host_qbittorrent_backup_dest }}/{{ filename_qbittorrent_backup_date }}"
+  when: run.backup.create
 
 - name: Nomad Job | qBittorrent | Backup | Fetch
       fetch:
         src: "{{ path_host_qbittorrent_backup_dest }}/{{ filename_qbittorrent_backup_date }}"
         # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
         dest: "{{ path_git_root }}/apps/qbittorrent/backups"
+  when: run.backup.create
+
+- name:  Nomad Job | Qbittorrent | Backup | Clean
+  file:
+    path: "{{ path_host_qbittorrent_backup_dest }}"
+    state: absent
+  when: run.backup.clean
