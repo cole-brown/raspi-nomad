@@ -109,7 +109,7 @@ job "pihole" {
       #   ```
       volume_mount {
         volume      = "pihole-backups"
-        destination = "/var/local/pihole/backups"
+        destination = "/var/local/pihole/backups" # TODO: rename to just "backup"
         read_only   = false
       }
 

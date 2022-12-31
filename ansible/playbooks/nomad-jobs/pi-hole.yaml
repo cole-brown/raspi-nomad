@@ -254,15 +254,17 @@
   set_fact:
     filename_pihole_backup_iso8601: "pihole-backup.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
     filename_pihole_backup_date: "pihole-backup.{{ ansible_date_time.date }}.tar.gz"
-    path_docker_pihole_backup: "/var/local/pihole/backups"
-    path_host_pihole_backup: "{{ ( backup_temp_root.path, 'pihole' ) | path_join }}"
+    path_pihole_backup_docker: "/var/local/pihole/backups" # TODO: rename to just "backup"
+    path_pihole_backup_docker_on_host: "/srv/nomad/pihole/backups" # TODO: rename to just "backup"
+    # Have to get Pi-Hole in its Docker container to do the backup, so we can't use the temp dir.
+    # path_pihole_backup_host: "{{ ( backup_temp_root.path, 'pihole' ) | path_join }}"
   changed_when: false
   when: run.backup.create
 
-- name: Nomad Job | Pi-Hole | Backup | Ensure '{{ path_host_pihole_backup }}' Exists
+- name: Nomad Job | Pi-Hole | Backup | Ensure '{{ path_pihole_backup_docker_on_host }}' Exists
   file:
     state: directory
-    path: "{{ path_host_pihole_backup }}"
+    path: "{{ path_pihole_backup_docker_on_host }}"
     owner: root
     group: root
     recurse: no
@@ -275,33 +277,20 @@
       - pihole
       - admin
       - teleporter
-      - "{{ path_docker_pihole_backup }}/{{ filename_pihole_backup_iso8601 }}"
-  when: run.backup.create
-
-- name: Nomad Job | Pi-Hole | Backup | Copy/Rename
-  copy:
-    remote_src: true
-    src: "{{ path_host_pihole_backup }}/{{ filename_pihole_backup_iso8601 }}"
-    dest: "{{ path_host_pihole_backup }}/{{ filename_pihole_backup_date }}"
+      # - "{{ path_pihole_backup_docker }}/{{ filename_pihole_backup_iso8601 }}"
+      - "{{ path_pihole_backup_docker }}/{{ filename_pihole_backup_date }}"
   when: run.backup.create
 
 - name: Nomad Job | Pi-Hole | Backup | Fetch
   fetch:
-    src: "{{ path_host_pihole_backup }}/{{ filename_pihole_backup_date }}"
+    src: "{{ path_pihole_backup_docker_on_host }}/{{ filename_pihole_backup_date }}"
     # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
     dest: "{{ backup.local.root }}"
   when: run.backup.create
 
-- name: Nomad Job | Pi-Hole | Backup | Clean on Docker
-  community.docker.docker_container_exec:
-    container: "{{ docker_container_pihole.stdout }}"
-    argv:
-      - rm
-      - "{{ path_docker_pihole_backup }}"
-  when: run.backup.clean
-
-- name:  Nomad Job | Pi-Hole | Backup | Clean on Host
+# NOTE: Don't delete folder because it's a Docker volume.
+- name:  Nomad Job | Pi-Hole | Backup | Clean
   file:
-    path: "{{ path_host_pihole_backup }}"
+    path: "{{ path_pihole_backup_docker_on_host }}/{{ filename_pihole_backup_date }}"
     state: absent
   when: run.backup.clean
