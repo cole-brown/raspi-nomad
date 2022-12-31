@@ -149,7 +149,7 @@
       set_fact:
         filename_qbittorrent_backup_iso8601: "qbittorrent-backup.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
         filename_qbittorrent_backup_date: "qbittorrent-backup.{{ ansible_date_time.date }}.tar.gz"
-    path_host_plex_backup_dest: "{{ ( backup_temp_root.path, 'qbittorrent' ) | path_join }}"
+    path_host_qbittorrent_backup_dest: "{{ ( backup_temp_root.path, 'qbittorrent' ) | path_join }}"
         path_host_qbittorrent_backup_src: "/srv/nomad/qbittorrent/config/qBittorrent"
       changed_when: false
   when: run.backup.create
