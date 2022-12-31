@@ -44,6 +44,8 @@ dc_2021_home:
         # The first is created as a temp dir on the Ansible target.
         local:
         root: "/mnt/nfs/media/backup/{{ '%Y-%m-%d' | strftime }}"
+        host:
+          tmp_suffix: ".backup"
 
       # Speed up playbook testing...
       run:

@@ -127,7 +127,7 @@
     pihole_whitelist_changed: "{{ pihole_whitelisted_domains_pre != pihole_whitelisted_domains_post or pihole_whitelisted_regexes_pre != pihole_whitelisted_regexes_post }}"
   when: docker_container_pihole.stdout
   # Try to make this step's status reflect its name?
-  changed_when: pihole_whitelist_domains_changed or pihole_whitelist_regexes_changed
+  changed_when: pihole_whitelist_changed
 
 # ------------------------------------------------------------------------------
 # Blacklisting
@@ -218,7 +218,7 @@
     pihole_blacklist_changed: "{{ pihole_blacklisted_domains_pre != pihole_blacklisted_domains_post or pihole_blacklisted_regexes_pre != pihole_blacklisted_regexes_post }}"
   when: docker_container_pihole.stdout
   # Try to make this step's status reflect its name?
-  changed_when: pihole_blacklist_domains_changed or pihole_blacklist_regexes_changed
+  changed_when: pihole_blacklist_changed
 
 
 # ------------------------------------------------------------------------------
@@ -254,8 +254,8 @@
   set_fact:
     filename_pihole_backup_iso8601: "pihole-backup.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
     filename_pihole_backup_date: "pihole-backup.{{ ansible_date_time.date }}.tar.gz"
-    path_docker_pihole_backup: "{{ ( backup_temp_root.path, 'pihole' ) | path_join }}"
-    path_host_pihole_backup: "/srv/nomad/pihole/backups"
+    path_docker_pihole_backup: "/var/local/pihole/backups"
+    path_host_pihole_backup: "{{ ( backup_temp_root.path, 'pihole' ) | path_join }}"
   changed_when: false
   when: run.backup.create
 
@@ -292,7 +292,15 @@
     dest: "{{ backup.local.root }}"
   when: run.backup.create
 
-- name:  Nomad Job | Pi-Hole | Backup | Clean
+- name: Nomad Job | Pi-Hole | Backup | Clean on Docker
+  community.docker.docker_container_exec:
+    container: "{{ docker_container_pihole.stdout }}"
+    argv:
+      - rm
+      - "{{ path_docker_pihole_backup }}"
+  when: run.backup.clean
+
+- name:  Nomad Job | Pi-Hole | Backup | Clean on Host
   file:
     path: "{{ path_host_pihole_backup }}"
     state: absent

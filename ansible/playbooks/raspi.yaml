@@ -422,7 +422,7 @@
     - name: Backup Directory | Create Temp
       tempfile:
         state: directory
-        suffix: backup
+        suffix: "{{ backup.host.tmp_suffix }}"
       register: backup_temp_root
       when: run.backup.create
 
