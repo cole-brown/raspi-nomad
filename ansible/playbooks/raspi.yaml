@@ -402,10 +402,39 @@
     # ------------------------------
     # Backup Directory
     # ------------------------------
+
+    - name: Backup Directory | Temp | Clean Previous Dirs | Find
+      find:
+        paths: "/tmp/"
+        file_type: directory
+        use_regex: yes
+        # Patterns must match full path, not just filename, when using regexes.
+        patterns:
+          - "/tmp/ansible\..{8}{{ tmp_suffix_regex }}"
+        recurse: no
+      register: find_old_backup_dirs
+      when: run.backup.clean
+
+    - name: Backup Directory | Temp | Clean Previous Dirs | Delete
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ find_old_backup_dirs.files }}"
+      when: run.backup.clean
+
+    # But we still need a backup dir on the raspi for temp work before
+    # transferring the final zip/whatever to localhost.
+    - name: Backup Directory | Temp | Create
+      tempfile:
+        state: directory
+        suffix: "{{ backup.host.tmp_suffix }}"
+      register: backup_temp_root
+      when: run.backup.create
+
     # Plex can have a huge config directory due to it's fast-forward/rewind
     # thumbnails. So... Save the backups to a directory that isn't on the raspi,
-    # since it only has a tiny flash card worth of +terabytes+ gigabytes.
-    - name: Backup Directory | Create
+    # since it only has a tiny flash card.
+    - name: Backup Directory | Remote | Create
       delegate_to: localhost
       file:
         state: directory
@@ -415,15 +444,6 @@
         # Defaults to not recursing into directory.
         # Could adjust if we need to mess with permissions of children.
         # recurse: no
-      when: run.backup.create
-
-    # But we still need a backup dir on the raspi for temp work before
-    # transferring the final zip/whatever to localhost.
-    - name: Backup Directory | Create Temp
-      tempfile:
-        state: directory
-        suffix: "{{ backup.host.tmp_suffix }}"
-      register: backup_temp_root
       when: run.backup.create
 
 

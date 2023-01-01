@@ -46,7 +46,9 @@ dc_2021_home:
         root: "/mnt/nfs/media/backup/{{ '%Y-%m-%d' | strftime }}"
         host:
           # Path will end up something like: "/tmp/ansible.862_jic2{{ tmp_suffix }}"
+          # NOTE: Keep suffix and its regex in sync!
           tmp_suffix: ".backup"
+          tmp_suffix_regex: "\.backup"
 
       # Speed up playbook testing...
       run:
@@ -72,5 +74,5 @@ dc_2021_home:
         nomad:
           pihole: no
           jackett: no
-          qbittorrent: no
+          qbittorrent: yes
           plex: yes
