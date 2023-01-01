@@ -33,8 +33,8 @@
 
 - name: Nomad Job | Plex | Backup | Make Filename
   set_fact:
-    filename_plex_backup_iso8601: "{{ plex.backup.filename_prefix }}.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
-    filename_plex_backup_date: "{{ plex.backup.filename_prefix }}.{{ ansible_date_time.date }}.tar.gz"
+    filename_plex_backup_iso8601: "plex.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
+    filename_plex_backup_date: "plex.{{ ansible_date_time.date }}.tar.gz"
     path_host_plex_backup_dest: "{{ ( backup_temp_root.path, 'plex' ) | path_join }}"
     path_host_plex_backup_src: "/srv/nomad/plex/config/Library/Application Support/Plex Media Server"
   changed_when: false
