@@ -184,7 +184,7 @@
       fetch:
         src: "{{ path_host_qbittorrent_backup_dest }}/{{ filename_qbittorrent_backup_date }}"
         # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
-        dest: "{{ path_git_root }}/apps/qbittorrent/backups"
+    dest: "{{ backup.local.root }}"
   when: run.backup.create
 
 - name:  Nomad Job | Qbittorrent | Backup | Clean
