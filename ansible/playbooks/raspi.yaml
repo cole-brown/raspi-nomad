@@ -408,9 +408,8 @@
         paths: "/tmp/"
         file_type: directory
         use_regex: yes
-        # Patterns must match full path, not just filename, when using regexes.
         patterns:
-          - "/tmp/ansible\..{8}{{ tmp_suffix_regex }}"
+          - "ansible\\..{8}{{ backup.host.tmp_suffix_regex }}"
         recurse: no
       register: find_old_backup_dirs
       when: run.backup.clean

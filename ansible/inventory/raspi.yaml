@@ -48,7 +48,7 @@ dc_2021_home:
           # Path will end up something like: "/tmp/ansible.862_jic2{{ tmp_suffix }}"
           # NOTE: Keep suffix and its regex in sync!
           tmp_suffix: ".backup"
-          tmp_suffix_regex: "\.backup"
+          tmp_suffix_regex: "\\.backup"
 
       # Speed up playbook testing...
       run:
