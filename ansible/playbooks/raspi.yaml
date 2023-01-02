@@ -433,7 +433,7 @@
     # Plex can have a huge config directory due to it's fast-forward/rewind
     # thumbnails. So... Save the backups to a directory that isn't on the raspi,
     # since it only has a tiny flash card.
-    - name: Backup Directory | Remote | Create
+    - name: Backup Directory | Local | Create
       delegate_to: localhost
       file:
         state: directory
@@ -583,14 +583,12 @@
     # Backup Directory - Ansible host (tempdir)
     # ------------------------------
     # Delete entire directory.
-    - name: Clean Backups | Root Dir | Delete if Empty
+    - name: Clean Backups | Temp Dir | Delete
       delegate_to: localhost
       file:
         path: "{{ backup.local.root }}"
         state: absent
-      when:
-        - run.backup.clean
-        - find_backup_root.matched == 0
+      when: run.backup.clean
 
     # ------------------------------
     # Backup Directory - localhost
