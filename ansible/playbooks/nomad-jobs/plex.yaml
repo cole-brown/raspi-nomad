@@ -35,7 +35,8 @@
   set_fact:
     filename_plex_backup_iso8601: "plex.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
     filename_plex_backup_date: "plex.{{ ansible_date_time.date }}.tar.gz"
-    path_host_plex_backup_dest: "{{ ( backup_temp_root.path, 'plex' ) | path_join }}"
+    path_host_plex_backup_dest: "{{ backup_temp_root.path }}/plex"
+    path_host_plex_backup_dest_files: "{{ backup_temp_root.path }}/plex/files"
     path_host_plex_backup_src: "/srv/nomad/plex/config/Library/Application Support/Plex Media Server"
   changed_when: false
   when: run.backup.create
@@ -43,46 +44,72 @@
 - name: Nomad Job | Plex | Backup | Ensure '{{ path_host_plex_backup_dest }}' Exists
   file:
     state: directory
-    path: "{{ path_host_plex_backup_dest }}"
+    path: "{{ path_host_plex_backup_dest_files }}"
     owner: root
     group: root
     recurse: no
   changed_when: false
   when: run.backup.create
 
+# ------------------------------
+# Copy Desired Files to Temp Dir
+# ------------------------------
 # Backup the config dir, minus a few of these subdirs:
 #   main@home-2019-raspi4:/srv/nomad/plex/config$ tree -d -L 4
 #   .
 #   └── Library
 #       └── Application Support
 #           └── Plex Media Server
-#               ├── Cache          # Don't backup.
+#               ├── Cache
 #               ├── Codecs
-#               ├── Crash Reports  # Don't backup.
-#               ├── Logs           # Don't backup.
+#               ├── Crash Reports
+#               ├── Logs
 #               ├── Media
 #               ├── Metadata
 #               ├── Plug-ins
 #               └── Plug-in Support
 # This only says skip "Cache" (the "preferences.xml" is in "Plex Media Server/")
 #   - https://support.plex.tv/articles/201539237-backing-up-plex-media-server-data/
-# ...but I don't want to back up crash reports or logs, so skip those too.
-- name: Nomad Job | Plex | Backup | Make
-  community.general.archive:
-    path: "{{ path_host_plex_backup_src }}"
-    exclusion_patterns:
-      - "Crash Reports"
-      - "Logs"
-      # These are the generated seek thumbnails. Avoid in order to make backup
-      # reasonably sized; Plex can regenerate them as needed?
-      - "Thumbnails"
-    dest: "{{ path_host_plex_backup_dest }}/{{ filename_plex_backup_iso8601 }}"
+# ...but also skip:
+#   - Crash Reports
+#   - Logs
+#   - Media
+#     - ¡¡¡This is the giant, gigabytes large one!!!
+
+# `community.general.archive` has both `exclude_paths` and `exclusion_pattern`,
+# but I cannot get those to work correctly to filter out the undesired
+# directories/files. Therefore: copy out the desired to a new location first.
+- name: Nomad Job | Plex | Backup | Find Desired Files
+  find:
+    paths: "{{ path_host_plex_backup_src }}"
+    file_type: any
+    recurse: no
+    use_regex: yes
+    # NOTE:
+    #   1) Only matches against file's _basename_, not full path!
+    #   2) If you use multiple patterns, they're OR'd together!
+    patterns:
+      - "^(?!Cache|Crash Reports|Logs|Media).*$"
+  register: plex_find_backup_paths
   when: run.backup.create
 
-- name: Nomad Job | Plex | Backup | Copy/Rename
-  copy:
+- name: Nomad Job | Plex | Backup | Copy Desired Files
+  ansible.builtin.copy: # Do not use `ansible.legacy.copy`.
     remote_src: true
-    src: "{{ path_host_plex_backup_dest }}/{{ filename_plex_backup_iso8601 }}"
+    src: "{{ item.path }}"
+    dest: "{{ path_host_plex_backup_dest_files }}/"
+  with_items: "{{ plex_find_backup_paths.files }}"
+  when:
+    - run.backup.create
+    - plex_find_backup_paths.matched > 0
+
+# ------------------------------
+# Backup Copied Files
+# ------------------------------
+
+- name: Nomad Job | Plex | Backup | Make
+  community.general.archive:
+    path: "{{ path_host_plex_backup_dest_files }}"
     dest: "{{ path_host_plex_backup_dest }}/{{ filename_plex_backup_date }}"
   when: run.backup.create
 
