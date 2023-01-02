@@ -286,6 +286,9 @@
     src: "{{ path_pihole_backup_docker_on_host }}/{{ filename_pihole_backup_date }}"
     # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
     dest: "{{ backup.local.root }}"
+    # Don't make parents: "<dest>/<host>/tmp/ansible.<random>.backup/..."
+    # Just copy to dest.
+    flat: true
   when: run.backup.create
 
 # NOTE: Don't delete folder because it's a Docker volume.

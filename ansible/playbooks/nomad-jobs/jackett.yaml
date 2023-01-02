@@ -69,6 +69,9 @@
     src: "{{ path_host_jackett_backup_dest }}/{{ filename_jackett_backup_date }}"
     # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
     dest: "{{ backup.local.root }}"
+    # Don't make parents: "<dest>/<host>/tmp/ansible.<random>.backup/..."
+    # Just copy to dest.
+    flat: true
   when: run.backup.create
 
 - name: Nomad Job | Jackett | Backup | Clean
