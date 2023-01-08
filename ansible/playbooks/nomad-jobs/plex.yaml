@@ -113,14 +113,31 @@
     dest: "{{ path_host_plex_backup_dest }}/{{ filename_plex_backup_date }}"
   when: run.backup.create
 
+# NOTE: `fetch` module does not work on non-small files... it base 64 encodes
+# them or something which really blows up their size. Use `synchronize` module
+# (which uses `rsync`) instead.
+# - name: Nomad Job | Plex | Backup | Fetch
+#   fetch:
+#     src: "{{ path_host_plex_backup_dest }}/{{ filename_plex_backup_date }}"
+#     dest: "{{ backup.local.root }}"
+#     # Don't make parents: "<dest>/<host>/tmp/ansible.<random>.backup/..."
+#     # Just copy to dest.
+#     flat: true
+#   when: run.backup.create
+
+# NOTE: `fetch` module does not work on non-small files... it base 64 encodes
+# them or something which really blows up their size. Use `synchronize` module
+# (which uses `rsync`) instead.
 - name: Nomad Job | Plex | Backup | Fetch
-  fetch:
+  synchronize:
+    archive: false
+    # `pull` - `src` is the ansible host
+    # `push` - `src` is the localhost
+    mode: pull
     src: "{{ path_host_plex_backup_dest }}/{{ filename_plex_backup_date }}"
-    # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
     dest: "{{ backup.local.root }}"
-    # Don't make parents: "<dest>/<host>/tmp/ansible.<random>.backup/..."
-    # Just copy to dest.
-    flat: true
+    owner: false # do not preserve file ownership
+    group: false # do not preserve file groupship
   when: run.backup.create
 
 - name:  Nomad Job | Plex | Backup | Clean

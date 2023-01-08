@@ -584,9 +584,8 @@
     # ------------------------------
     # Delete entire directory.
     - name: Clean Backups | Temp Dir | Delete
-      delegate_to: localhost
       file:
-        path: "{{ backup.local.root }}"
+        path: "{{ backup_temp_root.path }}"
         state: absent
       when: run.backup.clean
 
