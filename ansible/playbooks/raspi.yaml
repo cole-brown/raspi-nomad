@@ -541,6 +541,13 @@
       when: run.nomad.pihole
 
     # ------------------------------
+    # Cloudflared
+    # ------------------------------
+    - name: Nomad Job | Cloudflared
+      include_tasks: "nomad-jobs/cloudflared.yaml"
+      when: run.nomad.cloudflared
+
+    # ------------------------------
     # Jackett
     # ------------------------------
     - name: Nomad Job | Jackett

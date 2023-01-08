@@ -1,0 +1,92 @@
+# ------------------------------------------------------------------------------
+# Nomad Job: Cloudflared
+# ------------------------------------------------------------------------------
+#
+# NOTE: `run.nomad.cloudflared` is assumed to be true! Check when calling this.
+#
+# Example:
+#   - name: Nomad Job | Cloudflared
+#     include_tasks: "nomad-jobs/cloudflared.yaml"
+#     when: run.nomad.cloudflared
+
+- name: Nomad Job | Cloudflared | Run Job
+  community.general.nomad_job:
+    host: localhost # This is run on the remote host `home_2019_raspi4`, so "localhost" == Ansible host == "the target"?
+    content: "{{ lookup('ansible.builtin.file', '{{ path_git_root }}/nomad/jobs/cloudflared.nomad') }}"
+    state: present
+    use_ssl: no
+  register: nomad_job_cloudflared
+
+# Wait for it to be running... Can't get into the docker network from the
+# Raspberry Pi, so delegate to here.
+- name: Nomad Job | Cloudflared | Wait for Job
+  wait_for:
+    host: 192.168.50.4
+    port: 5053
+  delegate_to: localhost
+  when:
+    - nomad_job_cloudflared.changed
+
+# # What is its Docker container called?
+# - name: Nomad Job | Cloudflared | Find Docker Container
+#   # Ansible and Docker both use Jinja2, so... Need to escape the Jinja2
+#   # double curlies with Jinja2 double curlies so that Ansible doesn't eat
+#   # the double curlies before Docker gets the double curlies.
+#   command: docker ps --filter ancestor='cloudflared/cloudflared' --format "{{ '{{' }} .Names {{ '}}' }}"
+#   register: docker_container_cloudflared
+#   changed_when: false
+
+
+# # ------------------------------------------------------------------------------
+# # Backup
+# # ------------------------------------------------------------------------------
+
+# - name: Nomad Job | Cloudflared | Backup | Make Filenames
+#   set_fact:
+#     filename_cloudflared_backup_iso8601: "cloudflared-backup.{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
+#     filename_cloudflared_backup_date: "cloudflared-backup.{{ ansible_date_time.date }}.tar.gz"
+#     path_cloudflared_backup_docker: "/var/local/cloudflared/backups" # TODO: rename to just "backup"
+#     path_cloudflared_backup_docker_on_host: "/srv/nomad/cloudflared/backups" # TODO: rename to just "backup"
+#     # Have to get Cloudflared in its Docker container to do the backup, so we can't use the temp dir.
+#     # path_cloudflared_backup_host: "{{ ( backup_temp_root.path, 'cloudflared' ) | path_join }}"
+#   changed_when: false
+#   when: run.backup.create
+
+# - name: Nomad Job | Cloudflared | Backup | Ensure '{{ path_cloudflared_backup_docker_on_host }}' Exists
+#   file:
+#     state: directory
+#     path: "{{ path_cloudflared_backup_docker_on_host }}"
+#     owner: root
+#     group: root
+#     recurse: no
+#   when: run.backup.create
+
+# - name: Nomad Job | Cloudflared | Backup | Make
+#   community.docker.docker_container_exec:
+#     container: "{{ docker_container_cloudflared.stdout }}"
+#     argv:
+#       - cloudflared
+#       - admin
+#       - teleporter
+#       # - "{{ path_cloudflared_backup_docker }}/{{ filename_cloudflared_backup_iso8601 }}"
+#       - "{{ path_cloudflared_backup_docker }}/{{ filename_cloudflared_backup_date }}"
+#   when: run.backup.create
+
+# - name: Nomad Job | Cloudflared | Backup | Fetch
+#   fetch:
+#     src: "{{ path_cloudflared_backup_docker_on_host }}/{{ filename_cloudflared_backup_date }}"
+#     # Saves `src` file under "Ansible inventory host name" subdir of `dest`.
+#     dest: "{{ backup.local.root }}"
+#     # Don't make parents: "<dest>/<host>/tmp/ansible.<random>.backup/..."
+#     # Just copy to dest.
+#     flat: true
+#   when: run.backup.create
+
+# # NOTE: Don't delete folder because it's a Docker volume.
+# - name:  Nomad Job | Cloudflared | Backup | Clean
+#   file:
+#     path: "{{ path_cloudflared_backup_docker_on_host }}/{{ filename_cloudflared_backup_date }}"
+#     state: absent
+#   when:
+#     - run.backup.create
+#     - run.backup.clean

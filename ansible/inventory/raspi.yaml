@@ -73,6 +73,7 @@ dc_2021_home:
           cifs: no
         nomad:
           pihole: no
+          cloudflared: yes
           jackett: no
-          qbittorrent: yes
-          plex: yes
+          qbittorrent: no
+          plex: no

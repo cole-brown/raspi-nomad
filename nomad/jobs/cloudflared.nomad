@@ -37,7 +37,6 @@ job "cloudflared" {
     # Don't need to define any ports because Cloudflared is on a macvlan network,
     # so it gets all its own ports.
 
-    # TODO: Move this into 'pihole.nomad' once it works?
     #---------------------------------------------------------------------------
     # Task: Cloudflared Docker Container
     #---------------------------------------------------------------------------
