@@ -59,8 +59,8 @@ dc_2021_home:
           cifs: no
         apt:
           repo: no
-          upgrade: no
-          clean: no
+          upgrade: yes
+          clean: yes
         backup:
           # Create backups for whatever steps run and can create backups?
           create: yes
@@ -72,8 +72,8 @@ dc_2021_home:
           consul: no
           cifs: no
         nomad:
-          pihole: no
-          cloudflared: yes
+          pihole: yes
+          cloudflared: no
           jackett: no
           qbittorrent: no
           plex: no
