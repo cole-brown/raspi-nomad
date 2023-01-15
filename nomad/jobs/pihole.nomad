@@ -197,10 +197,15 @@ job "pihole" {
         TZ           = "US/Pacific"
         WEBPASSWORD  = "I do not like raspberries."
 
+        # Upstream DNSes:
+        #   9.9.9.11       - Quad9 (malware filter, ECS, DNSSEC)
+        #   149.112.112.11 - Quad9 (malware filter, ECS, DNSSEC)
+        #   8.8.8.8        - Google (ECS, DNSSEC)
+        #   192.168.50.4   - cloudflared (DoH, DoT) (see "cloudflared.nomad")
         # NOTE: The existence of this environment variable assumes this as the
         # sole management of upstream DNS. Upstream DNS added via the web
         # interface will be overwritten on container restart/recreation.
-        PIHOLE_DNS_ = "149.112.112.11; 8.8.8.8" # Quad9 (malware filter, ECS, DNSSEC); Google (ECS, DNSSEC)
+        PIHOLE_DNS_ = "192.168.50.4#5053;9.9.9.11;8.8.8.8"
 
         # TODO-IPv6: DHCP_IPv6 = "true"
 
